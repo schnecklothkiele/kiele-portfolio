@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiele Schneckloth — Staff UX Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#06050f;--fg:#f2efe9;--fg2:rgba(242,239,233,.6);--fg3:rgba(242,239,233,.3);--fg4:rgba(242,239,233,.1);
+  --purple:#c4b0ff;--blue:#72c8ff;--amber:#ffd080;--green:#7ef5c0;--sage:#a8d8a0;--pink:#ffaad4;--herb:#b8e8a0;
+  --bar:44px;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--fg);font-family:'DM Sans',sans-serif;cursor:none;overflow:hidden;}
+
+/* ── CURSOR + POLLEN ── */
+#cur{position:fixed;pointer-events:none;z-index:9999;top:0;left:0;}
+.ci{width:10px;height:10px;background:var(--fg);border-radius:50%;position:absolute;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .2s;}
+.cr{width:28px;height:28px;border:1px solid rgba(168,216,160,.35);border-radius:50%;position:absolute;transform:translate(-50%,-50%);transition:all .3s;}
+#cur.hov .ci{width:5px;height:5px;background:var(--sage);}
+#cur.hov .cr{width:46px;height:46px;border-color:rgba(168,216,160,.7);}
+.pollen{position:fixed;pointer-events:none;z-index:9995;border-radius:50%;animation:pollenFly var(--d,.7s) ease forwards;}
+@keyframes pollenFly{from{opacity:.8;transform:translate(0,0) scale(1);}to{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.1);}}
+.petal{position:fixed;pointer-events:none;z-index:9994;font-size:14px;animation:petalBurst .9s ease forwards;}
+@keyframes petalBurst{from{opacity:1;transform:translate(0,0) scale(1) rotate(0);}to{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.2) rotate(var(--tr));}}
+
+/* ── BEE ── */
+#bee{position:fixed;pointer-events:none;z-index:9990;font-size:16px;top:200px;left:200px;animation:beeBob 1.2s ease-in-out infinite;}
+@keyframes beeBob{0%,100%{transform:translateY(0) rotate(-6deg);}50%{transform:translateY(-5px) rotate(6deg);}}
+
+/* ── GARDEN BAR (fixed top nav) ── */
+#gbar{
+  position:fixed;top:0;left:0;right:0;height:var(--bar);z-index:600;
+  background:rgba(6,5,15,.92);border-bottom:1px solid rgba(168,216,160,.1);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.25rem;backdrop-filter:blur(14px);
+}
+.gbar-l{display:flex;align-items:center;gap:.75rem;}
+.gbar-logo{font-family:'Lora',serif;font-size:13px;color:var(--fg);opacity:.72;letter-spacing:.04em;}
+.gbar-steps{display:flex;gap:4px;}
+.gbs{width:26px;height:2.5px;border-radius:2px;background:var(--fg4);cursor:pointer;position:relative;overflow:hidden;transition:background .3s;}
+.gbs::after{content:'';position:absolute;inset:0;transform:scaleX(0);transform-origin:left;transition:transform .4s;border-radius:2px;}
+.gbs.done::after{transform:scaleX(1);background:rgba(168,216,160,.4);}
+.gbs.active::after{transform:scaleX(1);background:var(--sage);}
+.gbar-label{font-size:10px;color:var(--fg3);letter-spacing:.1em;text-transform:uppercase;}
+.gbar-r{display:flex;align-items:center;gap:.875rem;}
+#gplants{display:flex;gap:3px;}
+.gpl{font-size:13px;opacity:.12;filter:grayscale(1);transition:all .5s;}
+.gpl.grown{opacity:1;filter:none;animation:plantBob 2s ease-in-out infinite;}
+.gpl:nth-child(2).grown{animation-delay:.25s;}.gpl:nth-child(3).grown{animation-delay:.5s;}
+.gpl:nth-child(4).grown{animation-delay:.75s;}.gpl:nth-child(5).grown{animation-delay:1s;}
+.gpl:nth-child(6).grown{animation-delay:1.25s;}.gpl:nth-child(7).grown{animation-delay:1.5s;}
+@keyframes plantBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
+#xptrack{width:72px;height:3px;background:var(--fg4);border-radius:2px;overflow:hidden;}
+#xpfill{height:100%;width:0%;background:linear-gradient(90deg,var(--sage),var(--purple));transition:width .5s ease;}
+#seedbadge{font-size:10px;color:var(--amber);font-weight:600;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:4rem;left:50%;transform:translateX(-50%) translateY(12px);z-index:700;
+  padding:8px 18px;border-radius:100px;background:rgba(6,5,15,.94);
+  border:1px solid rgba(168,216,160,.28);font-size:12px;color:var(--sage);font-weight:500;
+  opacity:0;transition:all .4s;pointer-events:none;white-space:nowrap;backdrop-filter:blur(10px);}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── NAV ARROWS ── */
+.arrows{position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:600;}
+.arr{width:44px;height:44px;border-radius:50%;border:1px solid var(--fg4);background:rgba(242,239,233,.03);
+  color:var(--fg2);font-size:16px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .25s;backdrop-filter:blur(10px);}
+.arr:hover{background:rgba(168,216,160,.1);border-color:rgba(168,216,160,.3);color:var(--sage);}
+.arr:disabled{opacity:.1;cursor:default;pointer-events:none;}
+
+/* ════════════════════════════════════
+   PANEL SYSTEM — key fix: use display none/block not opacity for panels
+   each panel fills the viewport below the garden bar
+════════════════════════════════════ */
+.panel{
+  position:fixed;
+  top:var(--bar);left:0;right:0;bottom:0;
+  display:none;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  z-index:1;
+}
+.panel.active{display:block;}
+
+/* ═══════════════════
+   P0 HERO
+═══════════════════ */
+#p0{
+  display:none;
+  align-items:center;justify-content:center;
+  text-align:center;
+  min-height:calc(100vh - var(--bar));
+  overflow:hidden;position:relative;
+}
+#p0.active{display:flex;}
+#p0::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 18% 85%,rgba(80,35,140,.3) 0%,transparent 55%),
+             radial-gradient(ellipse at 82% 15%,rgba(25,65,130,.22) 0%,transparent 55%);}
+#starC,#botC{position:absolute;inset:0;width:100%;height:100%;}
+#botC{z-index:2;}
+.plant-hint{position:absolute;bottom:5.5rem;left:50%;transform:translateX(-50%);
+  font-size:10px;color:var(--fg3);letter-spacing:.12em;z-index:5;pointer-events:none;
+  animation:hintFade 2.5s ease-in-out infinite 2.5s both;}
+@keyframes hintFade{0%,100%{opacity:.2;}50%{opacity:.7;}}
+.hero-wrap{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;
+  padding:2rem 1.5rem;animation:fadeUp 1s ease both .4s;}
+.hero-name{font-family:'Lora',serif;font-size:clamp(54px,10.5vw,110px);
+  font-weight:400;line-height:.92;letter-spacing:-.025em;}
+.hn1{display:block;color:var(--fg);}
+.hn2{display:block;font-style:italic;
+  background:linear-gradient(125deg,var(--purple) 0%,var(--blue) 42%,var(--herb) 82%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  background-size:300% 300%;animation:gradFlow 8s ease-in-out infinite;}
+@keyframes gradFlow{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
+.hero-sigil{display:flex;align-items:center;gap:.875rem;margin:.875rem 0;font-size:12px;color:var(--fg3);letter-spacing:.14em;}
+.sline{width:36px;height:.5px;background:linear-gradient(90deg,transparent,var(--fg3));}
+.sline.r{background:linear-gradient(90deg,var(--fg3),transparent);}
+.sglyphs{display:flex;gap:10px;}
+.sglyphs span{cursor:default;transition:all .3s;}
+.sglyphs span:hover{color:var(--sage);transform:scale(1.4);}
+.hero-tag{font-size:clamp(12px,1.4vw,14px);font-weight:300;color:var(--fg2);
+  line-height:1.75;max-width:440px;margin-bottom:2rem;}
+.hero-btn{display:flex;align-items:center;gap:10px;padding:12px 30px;border-radius:100px;
+  border:1px solid rgba(168,216,160,.35);background:rgba(168,216,160,.06);
+  color:var(--fg);font-size:13px;font-weight:500;cursor:pointer;transition:all .3s;
+  font-family:'DM Sans',sans-serif;}
+.hero-btn:hover{background:rgba(168,216,160,.15);border-color:rgba(168,216,160,.7);transform:scale(1.04);}
+.ls{display:inline-block;animation:leafSway 3s ease-in-out infinite;}
+.ls2{display:inline-block;animation:leafSway 3s ease-in-out infinite .5s;}
+@keyframes leafSway{0%,100%{transform:rotate(-8deg);}50%{transform:rotate(8deg);}}
+.hero-note{font-size:10px;color:var(--fg3);letter-spacing:.1em;margin-top:.625rem;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+
+/* ═══════════════════
+   P1 IMPACT — bento grid, full viewport
+═══════════════════ */
+#p1{display:none;}
+#p1.active{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:1.5px;
+  background:rgba(168,216,160,.06);
+  height:calc(100vh - var(--bar));
+}
+.ic{background:var(--bg);padding:2.25rem 2.5rem;position:relative;overflow:hidden;
+  cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;transition:background .4s;}
+.ic:hover{background:#0c0a1e;}
+.ic.sp2{grid-column:span 2;}
+.ic.tall{grid-row:span 2;justify-content:center;}
+/* glow */
+.ic::before{content:'';position:absolute;width:260px;height:260px;border-radius:50%;
+  filter:blur(70px);opacity:0;transition:opacity .5s;pointer-events:none;bottom:-60px;right:-60px;}
+.ic:hover::before{opacity:.2;}
+.ic.cp::before{background:var(--purple);}
+.ic.cb::before{background:var(--blue);}
+.ic.ca::before{background:var(--amber);}
+.ic.cg::before{background:var(--green);}
+/* corner bracket */
+.ic::after{content:'';position:absolute;top:0;left:0;width:44px;height:44px;
+  border-top:1.5px solid rgba(168,216,160,0);border-left:1.5px solid rgba(168,216,160,0);transition:all .4s;}
+.ic:hover::after{border-color:rgba(168,216,160,.32);width:64px;height:64px;}
+/* ghost text */
+.ic-ghost{position:absolute;font-family:'Lora',serif;font-size:clamp(72px,11vw,145px);
+  font-weight:400;font-style:italic;right:-6px;bottom:-14px;opacity:.04;
+  pointer-events:none;white-space:nowrap;transition:opacity .4s,transform .5s;line-height:1;}
+.ic:hover .ic-ghost{opacity:.08;transform:scale(1.05) translateY(-5px);}
+.ic-icon{font-size:22px;margin-bottom:.75rem;display:block;cursor:pointer;
+  transition:transform .4s;filter:drop-shadow(0 0 5px rgba(168,216,160,.4));}
+.ic:hover .ic-icon{transform:scale(1.3) rotate(12deg);}
+.ic-tag{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;opacity:.72;}
+.cp .ic-tag{color:var(--purple);}
+.cb .ic-tag{color:var(--blue);}
+.ca .ic-tag{color:var(--amber);}
+.cg .ic-tag{color:var(--green);}
+.ic-num{font-family:'Lora',serif;font-size:clamp(36px,4.8vw,62px);font-weight:400;
+  line-height:1;margin-bottom:.4rem;transition:transform .4s;}
+.ic:hover .ic-num{transform:translateY(-3px);}
+.cp .ic-num{color:var(--purple);}
+.cb .ic-num{color:var(--blue);}
+.ca .ic-num{color:var(--amber);}
+.cg .ic-num{color:var(--green);}
+.ic-lbl{font-size:12px;color:var(--fg2);line-height:1.55;max-width:280px;}
+.ic-lbl strong{color:var(--fg);font-weight:500;}
+/* hover overlay */
+.ic-over{position:absolute;inset:0;padding:2.25rem 2.5rem;
+  background:rgba(6,5,15,.93);backdrop-filter:blur(4px);
+  opacity:0;transition:opacity .3s;display:flex;flex-direction:column;justify-content:center;}
+.ic:hover .ic-over{opacity:1;}
+.ic-oh{font-family:'Lora',serif;font-size:17px;font-weight:400;margin-bottom:.625rem;line-height:1.3;}
+.cp .ic-oh{color:var(--purple);}
+.cb .ic-oh{color:var(--blue);}
+.ca .ic-oh{color:var(--amber);}
+.cg .ic-oh{color:var(--green);}
+.ic-ob{font-size:12.5px;color:var(--fg2);line-height:1.75;}
+.ic-ob strong{color:var(--fg);font-weight:500;}
+.ic-badge{position:absolute;top:.75rem;right:.75rem;font-size:9px;font-weight:600;
+  padding:2px 7px;border-radius:100px;background:rgba(168,216,160,.12);color:var(--sage);
+  border:1px solid rgba(168,216,160,.2);opacity:0;transform:scale(.75);transition:all .4s;}
+.ic.read .ic-badge{opacity:1;transform:scale(1);}
+
+/* ═══════════════════
+   P2 WORK — sidebar + scrollable stage
+═══════════════════ */
+#p2{display:none;}
+#p2.active{display:flex;height:calc(100vh - var(--bar));}
+.wsb{
+  width:220px;flex-shrink:0;
+  border-right:1px solid var(--fg4);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:2rem 0;
+  position:relative;overflow:hidden;
+}
+#svineC{position:absolute;inset:0;pointer-events:none;z-index:0;}
+.wtab{padding:.875rem 1.5rem;cursor:pointer;border-left:2px solid transparent;
+  transition:all .3s;position:relative;z-index:1;}
+.wtab:hover{background:rgba(242,239,233,.03);}
+.wtab.on{border-left-color:var(--sage);background:rgba(168,216,160,.05);}
+.wtab-n{font-size:9px;color:var(--fg3);letter-spacing:.1em;margin-bottom:2px;}
+.wtab-name{font-size:12px;font-weight:500;color:var(--fg2);transition:color .3s;line-height:1.3;}
+.wtab.on .wtab-name,.wtab:hover .wtab-name{color:var(--fg);}
+.wtab-status{font-size:9px;font-weight:600;margin-top:3px;}
+.wtab-leaf{position:absolute;right:.875rem;top:50%;transform:translateY(-50%);
+  font-size:12px;opacity:0;transition:opacity .3s;}
+.wtab.on .wtab-leaf{opacity:1;animation:leafSway 2.5s ease-in-out infinite;}
+
+/* stage: takes remaining width, scrolls independently */
+.wstage{
+  flex:1;
+  position:relative;
+  overflow:hidden;/* clip inactive slides */
+}
+.wslide{
+  position:absolute;inset:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  opacity:0;pointer-events:none;
+  transform:translateX(20px);
+  transition:opacity .4s ease,transform .4s ease;
+  padding:2.5rem 3rem 5.5rem;/* bottom pad clears arrow bar */
+  scroll-padding-bottom:5rem;
+}
+.wslide.on{opacity:1;pointer-events:all;transform:none;}
+
+.ws-bg{position:absolute;right:-60px;bottom:-60px;width:380px;height:380px;
+  border-radius:50%;filter:blur(100px);opacity:.09;pointer-events:none;}
+.ws-icon{font-size:26px;margin-bottom:.75rem;display:block;cursor:pointer;
+  filter:drop-shadow(0 0 10px currentColor);transition:transform .3s;position:relative;z-index:1;}
+.ws-icon:hover{transform:scale(1.35) rotate(20deg);}
+.ws-eyebrow{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:.75rem;position:relative;z-index:1;}
+.ws-title{font-family:'Lora',serif;font-size:clamp(22px,2.6vw,34px);font-weight:400;
+  line-height:1.18;margin-bottom:.875rem;max-width:520px;position:relative;z-index:1;}
+.ws-body{font-size:13px;color:var(--fg2);line-height:1.82;max-width:480px;
+  margin-bottom:1.25rem;position:relative;z-index:1;}
+.ws-body strong{color:var(--fg);font-weight:500;}
+.ws-body em{color:var(--sage);font-style:normal;}
+
+/* metrics */
+.ws-mets{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.25rem;position:relative;z-index:1;}
+.wsm{padding:.6rem 1rem;border-radius:9px;border:1px solid var(--fg4);
+  background:rgba(242,239,233,.025);cursor:pointer;transition:all .3s;position:relative;overflow:hidden;}
+.wsm:hover{border-color:rgba(168,216,160,.28);background:rgba(168,216,160,.05);transform:translateY(-2px);}
+.wsm::before{content:'🌱';position:absolute;top:-14px;right:4px;font-size:12px;opacity:0;transition:all .3s;}
+.wsm:hover::before{top:3px;opacity:.5;}
+.wsm-v{font-family:'Lora',serif;font-size:21px;font-weight:400;line-height:1;}
+.wsm-l{font-size:9px;color:var(--fg3);margin-top:2px;letter-spacing:.03em;}
+
+/* case study toggle */
+.cs-toggle{
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.55rem .875rem;border-radius:8px;border:1px solid var(--fg4);
+  background:rgba(242,239,233,.03);cursor:pointer;transition:all .3s;
+  font-size:12px;font-weight:500;color:var(--fg2);
+  margin-bottom:1rem;position:relative;z-index:1;
+}
+.cs-toggle:hover{background:rgba(168,216,160,.07);border-color:rgba(168,216,160,.25);color:var(--fg);}
+.cs-arrow{font-size:11px;transition:transform .35s;}
+.cs-toggle.open .cs-arrow{transform:rotate(90deg);}
+
+/* drawer — max-height animation (cross-browser compatible) */
+.cs-drawer{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height .55s ease;
+  position:relative;z-index:1;
+}
+.cs-drawer.open{max-height:4000px;}
+.cs-drawer-inner{}
+.cs-content{padding:.25rem 0 1.5rem;}
+
+/* sections inside drawer */
+.css{margin-bottom:1.5rem;}
+.cssl{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--fg3);margin-bottom:.625rem;display:flex;align-items:center;gap:.5rem;}
+.cssl::after{content:'';flex:1;height:.5px;background:var(--fg4);}
+.csb{font-size:13px;color:var(--fg2);line-height:1.8;}
+.csb strong{color:var(--fg);font-weight:500;}
+.csb em{color:var(--sage);font-style:normal;}
+
+/* process steps */
+.cssteps{display:flex;flex-direction:column;gap:.875rem;margin-top:.5rem;}
+.csstep{display:flex;gap:.875rem;align-items:flex-start;}
+.csnum{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.csstep-t{font-size:12px;font-weight:600;color:var(--fg);margin-bottom:3px;}
+.csstep-d{font-size:12px;color:var(--fg2);line-height:1.68;}
+
+/* image slot */
+.imgslot{border-radius:10px;border:1px dashed rgba(168,216,160,.22);
+  background:rgba(168,216,160,.025);padding:1.25rem;text-align:center;
+  margin:.75rem 0;cursor:pointer;transition:all .3s;}
+.imgslot:hover{background:rgba(168,216,160,.06);border-color:rgba(168,216,160,.38);}
+.imgslot img{width:100%;border-radius:7px;display:block;}
+.imgslot-ph{font-size:11px;color:var(--fg3);padding:1rem 0;}
+.imgslot-ph .iph-icon{font-size:22px;display:block;margin-bottom:.375rem;}
+.imgslot-ph .iph-note{font-size:9px;color:rgba(168,216,160,.4);margin-top:.25rem;letter-spacing:.04em;}
+
+/* chips */
+.ws-chips{display:flex;gap:6px;flex-wrap:wrap;position:relative;z-index:1;margin-top:.5rem;}
+.wsc{padding:3px 10px;border-radius:100px;font-size:10px;font-weight:500;
+  background:rgba(242,239,233,.05);color:var(--fg2);border:1px solid var(--fg4);
+  cursor:default;transition:all .25s;}
+.wsc:hover{background:rgba(168,216,160,.07);border-color:rgba(168,216,160,.22);color:var(--fg);}
+
+/* ═══════════════════
+   P3 ABOUT — scrollable
+═══════════════════ */
+#p3{display:none;}
+#p3.active{
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:3rem 3rem 6rem;
+  gap:3rem;
+  min-height:calc(100vh - var(--bar));
+}
+.ab-l{flex:1;max-width:440px;}
+.ab-hed{font-family:'Lora',serif;font-size:clamp(24px,3.2vw,40px);font-weight:400;line-height:1.22;margin-bottom:1.25rem;}
+.ab-hed em{font-style:italic;color:var(--fg3);}
+.ab-body{font-size:13px;color:var(--fg2);line-height:1.88;margin-bottom:1.25rem;}
+.ab-body strong{color:var(--fg);font-weight:500;}
+.geek-shelf{display:flex;flex-wrap:wrap;gap:7px;padding:1rem 1.125rem;border-radius:11px;border:1px solid var(--fg4);background:rgba(242,239,233,.02);margin-bottom:1rem;}
+.gpill{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:100px;
+  font-size:11px;color:var(--fg2);background:rgba(242,239,233,.05);border:1px solid var(--fg4);
+  transition:all .3s;cursor:pointer;}
+.gpill:hover{transform:scale(1.1) translateY(-2px);}
+.gpill.plant:hover{background:rgba(168,216,160,.12);border-color:rgba(168,216,160,.35);color:var(--sage);}
+.gpill.cosmic:hover{background:rgba(196,176,255,.12);border-color:rgba(196,176,255,.35);color:var(--purple);}
+.gpill.game:hover{background:rgba(114,200,255,.12);border-color:rgba(114,200,255,.35);color:var(--blue);}
+.ab-side{padding:1rem 1.125rem;border-radius:11px;border:1px solid var(--fg4);
+  background:rgba(242,239,233,.02);position:relative;overflow:hidden;margin-top:1rem;}
+.ab-shine{position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(168,216,160,.4),transparent);}
+.ab-side-lbl{font-size:9px;color:var(--fg3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
+.ab-side-title{font-size:13px;font-weight:500;margin-bottom:3px;}
+.ab-side-body{font-size:11px;color:var(--fg2);line-height:1.6;}
+/* also show garden meter in about */
+#gardenMeter{display:flex;align-items:center;gap:10px;margin-top:1rem;
+  padding:.75rem 1rem;border-radius:10px;border:1px solid rgba(168,216,160,.14);
+  background:rgba(168,216,160,.03);}
+#gardenMeterLabel{font-size:11px;color:var(--fg3);flex:1;letter-spacing:.04em;}
+#gardenMeterPlants{display:flex;gap:3px;}
+.gmp{font-size:15px;opacity:.12;filter:grayscale(1);transition:all .5s;}
+.gmp.grown{opacity:1;filter:none;animation:plantBob 2s ease-in-out infinite;}
+
+.ab-r{width:270px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;}
+.tc{padding:.875rem 1rem;border-radius:11px;border:1px solid var(--fg4);
+  background:rgba(242,239,233,.025);cursor:pointer;transition:all .3s;position:relative;overflow:hidden;}
+.tc:hover,.tc.open{background:rgba(242,239,233,.05);border-color:rgba(168,216,160,.14);transform:translateX(4px);}
+.tc.open{border-left:2px solid var(--sage);}
+.tc-top{display:flex;align-items:center;gap:8px;}
+.tc-ico{font-size:16px;flex-shrink:0;transition:transform .3s;}
+.tc.open .tc-ico{transform:scale(1.22);}
+.tc-tit{font-size:12px;font-weight:500;flex:1;line-height:1.2;}
+.tc-arr{font-size:10px;color:var(--fg3);transition:transform .3s;}
+.tc.open .tc-arr{transform:rotate(90deg);}
+.tc-bod{font-size:11px;color:var(--fg2);line-height:1.6;
+  max-height:0;overflow:hidden;
+  transition:max-height .45s ease;}
+.tc-bod-inner{padding:0;}
+.tc.open .tc-bod{max-height:120px;}
+.tc-bod-text{padding-top:.5rem;}
+.tc-sprout{position:absolute;bottom:4px;right:7px;font-size:11px;opacity:0;transition:opacity .4s;}
+.tc.open .tc-sprout{opacity:.4;animation:leafSway 2s ease-in-out infinite;}
+
+/* ═══════════════════
+   P4 CONTACT
+═══════════════════ */
+#p4{display:none;}
+#p4.active{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:3rem 2rem 6rem;
+  min-height:calc(100vh - var(--bar));
+  position:relative;overflow:hidden;
+}
+.ctbg{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.ctb1{position:absolute;width:600px;height:600px;border-radius:50%;filter:blur(120px);opacity:.15;background:var(--purple);top:-25%;left:-15%;animation:orb 11s ease-in-out infinite alternate;}
+.ctb2{position:absolute;width:420px;height:420px;border-radius:50%;filter:blur(100px);opacity:.11;background:var(--sage);bottom:-15%;right:-8%;animation:orb 14s ease-in-out infinite alternate-reverse;}
+.ctb3{position:absolute;width:280px;height:280px;border-radius:50%;filter:blur(85px);opacity:.09;background:var(--amber);top:40%;left:40%;animation:orb 9s ease-in-out infinite alternate;}
+@keyframes orb{from{transform:translate(0,0);}to{transform:translate(42px,30px);}}
+#p4botC{position:absolute;bottom:0;left:0;right:0;height:220px;pointer-events:none;z-index:1;}
+.ct-avail{display:inline-flex;align-items:center;gap:7px;padding:6px 16px;border-radius:100px;
+  background:rgba(126,245,192,.07);border:1px solid rgba(126,245,192,.2);
+  font-size:11px;font-weight:500;color:var(--green);margin-bottom:1.75rem;
+  position:relative;z-index:2;}
+.ct-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.8s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.7);}}
+.ct-hed{font-family:'Lora',serif;font-size:clamp(34px,6.5vw,76px);font-weight:400;line-height:1.06;position:relative;z-index:2;}
+.ct-hed em{font-style:italic;background:linear-gradient(130deg,var(--purple),var(--sage),var(--pink));background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradFlow 5s ease-in-out infinite;}
+.ct-sub{font-size:14px;font-weight:300;color:var(--fg2);max-width:480px;line-height:1.82;margin:1.125rem 0 2rem;position:relative;z-index:2;}
+.ct-sub em{color:var(--sage);font-style:normal;font-weight:400;}
+.ct-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;position:relative;z-index:2;}
+.btnf{padding:12px 28px;border-radius:100px;background:var(--fg);color:var(--bg);font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .25s;font-family:'DM Sans',sans-serif;}
+.btnf:hover{background:#fff;transform:scale(1.04);}
+.btno{padding:12px 28px;border-radius:100px;background:transparent;color:var(--fg);font-size:13px;font-weight:400;border:1px solid rgba(242,239,233,.2);cursor:pointer;transition:all .25s;font-family:'DM Sans',sans-serif;}
+.btno:hover{background:rgba(242,239,233,.07);border-color:rgba(242,239,233,.35);}
+#finalGarden{position:relative;z-index:2;font-size:20px;letter-spacing:4px;margin-top:1.5rem;opacity:0;transition:opacity .8s;}
+#finalGarden.show{opacity:1;}
+.fgp{display:inline-block;animation:plantBob 2s ease-in-out infinite;}
+.fgp:nth-child(2){animation-delay:.2s;}.fgp:nth-child(3){animation-delay:.4s;}.fgp:nth-child(4){animation-delay:.6s;}.fgp:nth-child(5){animation-delay:.8s;}.fgp:nth-child(6){animation-delay:1s;}.fgp:nth-child(7){animation-delay:1.2s;}
+.zodrow{display:flex;gap:12px;margin-top:1.5rem;position:relative;z-index:2;}
+.zod{font-size:18px;cursor:pointer;transition:all .35s;opacity:.22;filter:grayscale(1);position:relative;}
+.zod:hover{opacity:1;filter:none;transform:scale(1.45) rotate(15deg);}
+.zod::after{content:attr(data-tip);position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:rgba(6,5,15,.94);border:1px solid var(--fg4);font-size:9px;color:var(--fg);padding:3px 7px;border-radius:5px;white-space:nowrap;opacity:0;transition:opacity .25s;pointer-events:none;font-family:'DM Sans',sans-serif;}
+.zod:hover::after{opacity:1;}
+
+/* ════════════════════════════════════
+   RESPONSIVE — tablet (≤1024px)
+════════════════════════════════════ */
+@media(max-width:1024px){
+  /* garden bar: hide xp track and label on smaller screens */
+  .gbar-label{display:none;}
+  #xptrack{width:56px;}
+
+  /* bento grid: 2 col instead of 3 */
+  #p1.active{
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:auto auto auto;
+    height:auto;min-height:calc(100vh - var(--bar));
+  }
+  .ic.sp2{grid-column:span 2;}
+  .ic.tall{grid-row:span 1;}
+
+  /* work: shrink sidebar */
+  .wsb{width:180px;}
+  .wslide{padding:2rem 2rem 5.5rem;}
+
+  /* about: stay two-col but tighter */
+  #p3.active{padding:2.5rem 2rem 6rem;gap:2rem;}
+  .ab-l{max-width:380px;}
+  .ab-r{width:240px;}
+}
+
+/* ════════════════════════════════════
+   RESPONSIVE — small tablet (≤768px)
+════════════════════════════════════ */
+@media(max-width:768px){
+
+  /* garden bar: simplify */
+  #gplants{display:none;}
+  .gbar-label{display:none;}
+  #gbar{padding:0 1rem;}
+
+  /* hero */
+  #p0{padding:1rem;}
+  .hero-wrap{padding:1.5rem 1rem;}
+
+  /* bento: single column stack */
+  #p1.active{
+    grid-template-columns:1fr;
+    grid-template-rows:none;
+    height:auto;
+  }
+  .ic.sp2{grid-column:span 1;}
+  .ic.tall{grid-row:span 1;}
+  .ic{padding:1.75rem 1.5rem;min-height:220px;}
+  .ic-num{font-size:clamp(32px,8vw,52px);}
+  .ic-ghost{display:none;}
+
+  /* work: stack sidebar above content */
+  #p2.active{
+    flex-direction:column;
+    height:auto;
+    overflow-y:auto;
+  }
+  .wsb{
+    width:100%;
+    flex-direction:row;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    border-right:none;
+    border-bottom:1px solid var(--fg4);
+    padding:0;
+    justify-content:flex-start;
+    gap:0;
+  }
+  .wtab{
+    padding:.75rem 1rem;
+    border-left:none;
+    border-bottom:2px solid transparent;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .wtab.on{border-left-color:transparent;border-bottom-color:var(--sage);}
+  .wtab-n,.wtab-leaf{display:none;}
+  .wtab-status{display:none;}
+  .wstage{
+    position:relative;
+    flex:1;
+    min-height:0;
+  }
+  .wslide{
+    position:relative;
+    inset:auto;
+    display:none;
+    transform:none;
+    padding:1.75rem 1.5rem 5.5rem;
+    overflow-y:visible;
+  }
+  .wslide.on{display:block;opacity:1;pointer-events:all;}
+  #svineC{display:none;}
+
+  /* about: stack vertically */
+  #p3.active{
+    flex-direction:column;
+    align-items:stretch;
+    padding:2rem 1.25rem 6rem;
+    gap:1.5rem;
+  }
+  .ab-l{max-width:100%;}
+  .ab-r{width:100%;}
+
+  /* contact */
+  #p4.active{padding:2rem 1.25rem 6rem;}
+  .ct-hed{font-size:clamp(28px,8vw,52px);}
+  .zodrow{flex-wrap:wrap;justify-content:center;}
+
+  /* arrows: stay centered, smaller */
+  .arrows{bottom:1rem;}
+  .arr{width:40px;height:40px;font-size:15px;}
+}
+
+/* ════════════════════════════════════
+   RESPONSIVE — mobile (≤480px)
+════════════════════════════════════ */
+@media(max-width:480px){
+
+  :root{--bar:40px;}
+
+  /* garden bar: ultra compact */
+  #gbar{padding:0 .875rem;}
+  .gbar-logo{font-size:12px;}
+  .gbs{width:20px;}
+  #xptrack{display:none;}
+  #seedbadge{font-size:9px;}
+
+  /* hero */
+  .hero-wrap{padding:1rem .75rem;}
+  .hero-sigil{display:none;}
+  .hero-btn{padding:10px 22px;font-size:12px;}
+  .hero-note{font-size:9px;}
+
+  /* bento cells: smaller padding */
+  .ic{padding:1.25rem 1.125rem;min-height:180px;}
+  .ic-tag{font-size:9px;}
+  .ic-icon{font-size:18px;}
+  .ic-num{font-size:clamp(28px,9vw,44px);}
+  .ic-lbl{font-size:11px;}
+  .ic-oh{font-size:15px;}
+  .ic-ob{font-size:11.5px;}
+
+  /* work sidebar: tab text shorter */
+  .wtab{padding:.625rem .875rem;}
+  .wtab-name{font-size:11px;}
+  .wslide{padding:1.25rem 1rem 5.5rem;}
+  .ws-title{font-size:clamp(19px,5.5vw,28px);}
+  .ws-body{font-size:12px;}
+  .wsm-v{font-size:18px;}
+  .csstep-d{font-size:11px;}
+  .csb{font-size:12px;}
+
+  /* about */
+  #p3.active{padding:1.5rem 1rem 6rem;}
+  .ab-hed{font-size:clamp(20px,6vw,30px);}
+  .ab-body{font-size:12px;}
+  .geek-shelf{gap:5px;padding:.75rem;}
+  .gpill{font-size:10px;padding:3px 8px;}
+  .tc{padding:.75rem .875rem;}
+
+  /* contact */
+  #p4.active{padding:1.5rem 1rem 6rem;}
+  .ct-hed{font-size:clamp(26px,7.5vw,44px);}
+  .ct-sub{font-size:13px;}
+  .btnf,.btno{padding:10px 22px;font-size:12px;}
+  .zodrow{gap:8px;}
+
+  /* hide bee on mobile — performance */
+  #bee{display:none;}
+
+  /* arrows */
+  .arr{width:38px;height:38px;font-size:14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── GARDEN BAR ── -->
+<div id="gbar">
+  <div class="gbar-l">
+    <span class="gbar-logo">✦ KS</span>
+    <div class="gbar-steps" id="stepsEl">
+      <div class="gbs active" onclick="goTo(0)"></div>
+      <div class="gbs" onclick="goTo(1)"></div>
+      <div class="gbs" onclick="goTo(2)"></div>
+      <div class="gbs" onclick="goTo(3)"></div>
+      <div class="gbs" onclick="goTo(4)"></div>
+    </div>
+    <span class="gbar-label" id="navLbl">Intro</span>
+  </div>
+  <div class="gbar-r">
+    <div id="gplants">
+      <span class="gpl">🌱</span><span class="gpl">🌿</span><span class="gpl">🌸</span>
+      <span class="gpl">🌺</span><span class="gpl">🌻</span><span class="gpl">🌳</span><span class="gpl">✨</span>
+    </div>
+    <div id="xptrack"><div id="xpfill"></div></div>
+    <span id="seedbadge">0 🌟</span>
+  </div>
+</div>
+
+<div id="cur"><div class="ci"></div><div class="cr"></div></div>
+<div id="bee">🐝</div>
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════
+     P0 — HERO
+═══════════════════════════════════ -->
+<div class="panel active" id="p0">
+  <canvas id="starC"></canvas>
+  <canvas id="botC"></canvas>
+  <div class="plant-hint">✦ click the background to plant · pet the plants · collect seeds ✦</div>
+  <div class="hero-wrap">
+    <h1 class="hero-name">
+      <span class="hn1">Kiele</span>
+      <span class="hn2">Schneckloth</span>
+    </h1>
+    <div class="hero-sigil">
+      <div class="sline"></div>
+      <div class="sglyphs">
+        <span title="Staff UX Designer">✦</span>
+        <span title="The Home Depot">◈</span>
+        <span title="Remote-first">☽</span>
+        <span title="Open to work">✧</span>
+      </div>
+      <div class="sline r"></div>
+    </div>
+    <p class="hero-tag">
+      I design for complex systems and high-stakes decisions.<br>
+      I find problems no one asked me to find — then build the evidence, the strategy, and the solution.
+    </p>
+    <button class="hero-btn" id="heroBtn">
+      <span class="ls">🌿</span> See what I've built <span class="ls2">🌿</span>
+    </button>
+    <div class="hero-note">5 panels · grow the garden · collect seeds · ← → keyboard</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     P1 — IMPACT
+═══════════════════════════════════ -->
+<div class="panel" id="p1">
+
+  <div class="ic cp sp2" onclick="readCard(this,0)">
+    <div class="ic-ghost">$5B</div>
+    <span class="ic-icon" onclick="petPlant(event,this)">🔮</span>
+    <div class="ic-tag">Business impact · CLEAR Integration · 13 months</div>
+    <div class="ic-num">$5,000,000,000</div>
+    <div class="ic-lbl">in shrink reduction — from <strong>one shipped integration</strong> across two surfaces</div>
+    <div class="ic-over">
+      <div class="ic-oh">What $5B actually looks like</div>
+      <div class="ic-ob">I was the <strong>sole designer</strong> on the CLEAR biometric ID integration — in-store associate experience and consumer online flow. I didn't just design screens. I designed trust at the moment someone hands you their government ID. The emotional design, the acceptance rate model, the cross-collaboration with CLEAR's own team — all mine. The result: <strong>$5B in shrink reduction over 13 months</strong>, and UMUX Lite moving from 46 to 63.</div>
+    </div>
+    <div class="ic-badge">✓ Read</div>
+  </div>
+
+  <div class="ic cb tall" onclick="readCard(this,1)">
+    <div class="ic-ghost">1</div>
+    <span class="ic-icon" onclick="petPlant(event,this)">⚡</span>
+    <div class="ic-tag">Design ops · force multiplier · org-wide impact</div>
+    <div class="ic-num">1 of 7</div>
+    <div class="ic-lbl">designers left — I carried the roadmap solo and <strong>taught the entire company how to scale</strong> without me</div>
+    <div class="ic-over">
+      <div class="ic-oh">The multiplication effect</div>
+      <div class="ic-ob">When the rental team went from 7 designers to 1, I built a Glean-based AI research synthesis workflow — <strong>two years before AI was a conversation</strong>. Taught it to ICs. Then a senior principal. Watched it spread company-wide at one of the largest US retailers. That's not a productivity hack. That's org-level design ops impact. The roadmap kept moving the whole time.</div>
+    </div>
+    <div class="ic-badge">✓ Read</div>
+  </div>
+
+  <div class="ic ca" onclick="readCard(this,2)">
+    <div class="ic-ghost">+17</div>
+    <span class="ic-icon" onclick="petPlant(event,this)">📐</span>
+    <div class="ic-tag">Measured quality · UMUX Lite · Medallia</div>
+    <div class="ic-num">46 → 63</div>
+    <div class="ic-lbl">UMUX Lite improvement — <strong>17 points of measured design quality</strong>, not just vibes</div>
+    <div class="ic-over">
+      <div class="ic-oh">Design without receipts is just opinion</div>
+      <div class="ic-ob">CLEAR integration UMUX Lite: 46 to 63. Overall in-store associate app Medallia score: 3.2 to 4.6 out of 7 — while shipping multiple live changes in parallel. I establish baselines before I start. I track quality throughout. I report with data. When I say something improved, I have the numbers. <strong>Always.</strong></div>
+    </div>
+    <div class="ic-badge">✓ Read</div>
+  </div>
+
+  <div class="ic cg" onclick="readCard(this,3)">
+    <div class="ic-ghost">9✦</div>
+    <span class="ic-icon" onclick="petPlant(event,this)">🌱</span>
+    <div class="ic-tag">Strategic influence · PXMP · zero brief given</div>
+    <div class="ic-num">9 concepts</div>
+    <div class="ic-lbl">director-greenlit strategic initiatives — <strong>every one originated from my own research</strong>, without being asked</div>
+    <div class="ic-over">
+      <div class="ic-oh">The brief didn't exist until I wrote it</div>
+      <div class="ic-ob">On the PXMP pro loyalty team, leadership knew there was growth opportunity — but had no map. I built one. Walked competitor stores. Audited digital experiences. Synthesized associate feedback. Identified 3–20% rewards leakage as a quantifiable opportunity. Generated <strong>9 strategic concepts, all greenlit by directors.</strong> Now leading workshops to prioritize a multi-year roadmap with 10+ PMs and business partners.</div>
+    </div>
+    <div class="ic-badge">✓ Read</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════
+     P2 — WORK
+═══════════════════════════════════ -->
+<div class="panel" id="p2">
+  <div class="wsb">
+    <canvas id="svineC"></canvas>
+    <div class="wtab on" onclick="showW(0,this)">
+      <div class="wtab-n">01</div><div class="wtab-name">Pro Loyalty Strategy</div>
+      <div class="wtab-status" style="color:var(--green)">● Current</div>
+      <span class="wtab-leaf">🌿</span>
+    </div>
+    <div class="wtab" onclick="showW(1,this)">
+      <div class="wtab-n">02</div><div class="wtab-name">CLEAR ID Integration</div>
+      <div class="wtab-status" style="color:var(--purple)">● Shipped</div>
+      <span class="wtab-leaf">🌸</span>
+    </div>
+    <div class="wtab" onclick="showW(2,this)">
+      <div class="wtab-n">03</div><div class="wtab-name">Equipment Delivery</div>
+      <div class="wtab-status" style="color:var(--purple)">● Shipped</div>
+      <span class="wtab-leaf">🌾</span>
+    </div>
+    <div class="wtab" onclick="showW(3,this)">
+      <div class="wtab-n">04</div><div class="wtab-name">AI Freight Tool</div>
+      <div class="wtab-status" style="color:var(--blue)">● In Build</div>
+      <span class="wtab-leaf">⚡</span>
+    </div>
+    <div class="wtab" onclick="showW(4,this)">
+      <div class="wtab-n">05</div><div class="wtab-name">eLearning Platform</div>
+      <div class="wtab-status" style="color:var(--purple)">● Shipped</div>
+      <span class="wtab-leaf">✨</span>
+    </div>
+  </div>
+
+  <div class="wstage">
+
+    <!-- 01 PRO LOYALTY -->
+    <div class="wslide on" id="ws0">
+      <div class="ws-bg" style="background:var(--green)"></div>
+      <span class="ws-icon" onclick="petPlant(event,this)" style="color:var(--green)">🌿</span>
+      <div class="ws-eyebrow" style="color:var(--green)">Current · The Home Depot PXMP · Staff UX Designer</div>
+      <h2 class="ws-title">I created this brief.<br>No one asked me to.</h2>
+      <p class="ws-body">Leadership sensed untapped growth in the pro loyalty program. Competitors like Lowe's were already building subscription and home services models. There was no map, no framework, no brief. So I built one — competitive intelligence, signal synthesis, nine strategic concepts, all greenlit by directors. Now leading the workshops that turn those concepts into a multi-year roadmap.</p>
+      <div class="ws-mets">
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--green)">9</div><div class="wsm-l">Director-greenlit concepts</div></div>
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--green)">10+</div><div class="wsm-l">Stakeholders aligned</div></div>
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--green)">3–20%</div><div class="wsm-l">Rewards leakage identified</div></div>
+      </div>
+      <button class="cs-toggle" onclick="toggleDrawer(this)">
+        ↳ Full case study <span class="cs-arrow">›</span>
+      </button>
+      <div class="cs-drawer">
+        <div class="cs-drawer-inner">
+          <div class="cs-content">
+            <div class="css">
+              <div class="cssl">The Problem</div>
+              <p class="csb">The Home Depot's PXMP team serves professional contractors and builders — a high-value segment who spend significantly more than consumer customers. The loyalty program existed but had no strategic growth framework. Nobody had mapped where it was leaking value, where competitors were moving, or what the next meaningful lever was. Leadership knew something was missing. <em>Nobody had named it yet.</em></p>
+            </div>
+            <div class="css">
+              <div class="cssl">My Role</div>
+              <p class="csb">Solo UX designer — no brief, no direction, no template. I identified the gap, scoped the research approach, ran the competitive and qualitative analysis, generated the strategic concepts, and am now facilitating the cross-functional alignment process across PMs, directors, and loyalty business partners.</p>
+            </div>
+            <div class="css">
+              <div class="cssl">Process</div>
+              <div class="cssteps">
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(168,216,160,.15);color:var(--green)">1</div>
+                  <div><div class="csstep-t">Competitive landscape mapping</div><div class="csstep-d">Walked competitor stores in person — Lowe's, Menards, regional players. Audited their digital loyalty and subscription experiences. Documented what competitors were building that THD wasn't, and identified where they were investing for the next 2–3 years. Findings formed the foundation for every subsequent concept.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(168,216,160,.15);color:var(--green)">2</div>
+                  <div><div class="csstep-t">Signal synthesis via AI-assisted research ops</div><div class="csstep-d">Used AI tooling to process associate Medallia feedback and loyalty program data at scale — surface-level signals pointing to a 3–20% rewards capture gap. Associates were reporting that pros frequently didn't scan or weren't capturing rewards at checkout. That gap represents direct, quantifiable revenue leakage.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(168,216,160,.15);color:var(--green)">3</div>
+                  <div><div class="csstep-t">9 strategic concept generation</div><div class="csstep-d">Generated nine specific growth concepts spanning loyalty mechanic improvements, subscription model exploration, partnership opportunities, and service expansion into home care and maintenance — mirroring where competitors were heading. Each concept was grounded in data and tied to a measurable business outcome hypothesis. All nine were greenlit by director-level leadership.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(168,216,160,.15);color:var(--green)">4</div>
+                  <div><div class="csstep-t">Workshop facilitation + roadmap alignment</div><div class="csstep-d">Currently facilitating cross-functional workshops with 10+ PMs, directors, and loyalty business partners to pressure-test assumptions, align on priorities, and build the execution roadmap. The workshops use structured prioritization frameworks to surface the highest-confidence, highest-impact concepts for the first build phase.</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="css">
+              <div class="cssl">Image</div>
+              <div class="imgslot" onclick="earnSeed(event)">
+                <div class="imgslot-ph"><span class="iph-icon">🗺️</span>Competitive analysis map, workshop output, or concept board<div class="iph-note">NDA-SAFE: diagrams, frameworks, and sanitized artifacts are fine</div></div>
+              </div>
+            </div>
+            <div class="css">
+              <div class="cssl">Why This Matters at Staff Level</div>
+              <p class="csb">This project had no Jira ticket. I saw a strategic gap, built the evidence for it across competitive and qualitative research, and moved director-level stakeholders to action on nine specific opportunities. This is the exact type of work staff designers do at companies like Netflix — <em>setting design vision for an entire vertical</em>, working across PM, data, and business partners, and building the strategic framework that teams execute against. The most valuable work isn't assigned. <em>It's identified.</em></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ws-chips">
+        <span class="wsc">Competitive intelligence</span><span class="wsc">Workshop facilitation</span>
+        <span class="wsc">AI-assisted research ops</span><span class="wsc">Strategic roadmapping</span>
+        <span class="wsc">Stakeholder alignment</span><span class="wsc">Loyalty systems</span>
+      </div>
+    </div>
+
+    <!-- 02 CLEAR -->
+    <div class="wslide" id="ws1">
+      <div class="ws-bg" style="background:var(--purple)"></div>
+      <span class="ws-icon" onclick="petPlant(event,this)" style="color:var(--purple)">🔮</span>
+      <div class="ws-eyebrow" style="color:var(--purple)">Shipped · The Home Depot Rental · Sole designer across two surfaces</div>
+      <h2 class="ws-title">$5B in impact.<br>One designer. No backup.</h2>
+      <p class="ws-body">The Home Depot integrated CLEAR biometric ID verification to reduce large equipment rental shrink. I was the designer. <em>Not one of them — the designer.</em> The real design challenge wasn't the UI. It was the moment someone hands over their government ID to a retail associate. That moment required designing trust — and getting it wrong would have killed adoption entirely.</p>
+      <div class="ws-mets">
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--purple)">$5B</div><div class="wsm-l">Business impact, 13 months</div></div>
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--purple)">46→63</div><div class="wsm-l">UMUX Lite improvement</div></div>
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--purple)">2 surfaces</div><div class="wsm-l">In-store + consumer online</div></div>
+      </div>
+      <button class="cs-toggle" onclick="toggleDrawer(this)">
+        ↳ Full case study <span class="cs-arrow">›</span>
+      </button>
+      <div class="cs-drawer">
+        <div class="cs-drawer-inner">
+          <div class="cs-content">
+            <div class="css">
+              <div class="cssl">The Problem</div>
+              <p class="csb">Shrink on large equipment rentals — tools, trailers, heavy machinery — was a significant and growing financial problem. CLEAR biometric verification was selected as the solution, but that decision created a hard UX challenge: <em>how do you design an experience where a customer willingly hands over their government ID to a retail associate and feels safe doing it?</em> The wrong design approach drops acceptance rates, increases friction, and damages trust at exactly the moment you're trying to build it. Every design decision had direct financial implications.</p>
+            </div>
+            <div class="css">
+              <div class="cssl">My Role</div>
+              <p class="csb"><strong>Sole designer — both surfaces simultaneously.</strong> In-store associate-guided experience and self-serve consumer online flow. Cross-collaborated directly with CLEAR's own UX design team to ensure cohesion at the integration layer. Designed the emotional research approach, ran in-store field validation with real associates and customers, built the acceptance rate monitoring model, and owned UMUX Lite tracking from baseline through launch and iteration.</p>
+            </div>
+            <div class="css">
+              <div class="cssl">Process</div>
+              <div class="cssteps">
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(196,176,255,.15);color:var(--purple)">1</div>
+                  <div><div class="csstep-t">Emotional landscape research</div><div class="csstep-d">Before touching Figma, I ran qualitative research with customers and associates to understand the emotional arc of ID verification in a retail context. Mapped the anxiety peak (the moment of handing over ID), the trust signals that reduce it, and the recovery path if friction occurs. Most designers skip this step — it's not in the brief. It's the difference between a form that processes data and an experience that feels safe.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(196,176,255,.15);color:var(--purple)">2</div>
+                  <div><div class="csstep-t">Dual-surface design in parallel</div><div class="csstep-d">Designed the in-store associate-guided flow (time-pressured, conversational, requires associate confidence) and the consumer self-serve online flow (privacy-sensitive, asynchronous, different trust requirements) simultaneously. Regular cross-team design reviews with CLEAR's UX team ensured visual and interaction cohesion at the integration boundary — where the two product experiences meet.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(196,176,255,.15);color:var(--purple)">3</div>
+                  <div><div class="csstep-t">Acceptance rate modeling + field validation</div><div class="csstep-d">Built a monitoring model tracking drop-off across the verification funnel — identifying exactly where customers and associates abandoned and what design changes reduced friction. Ran field validation with real associates during the integration rollout, observing how they guided customers through the flow and where the experience broke down in practice vs. in testing.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(196,176,255,.15);color:var(--purple)">4</div>
+                  <div><div class="csstep-t">Continuous measurement + iteration</div><div class="csstep-d">Established UMUX Lite as the primary quality signal alongside Medallia for broader sentiment. Baseline: 46. Post-iteration: 63 — a 17-point improvement. The overall in-store associate app Medallia score moved from 3.2 to 4.6 out of 7 during the same period, across multiple simultaneous improvements. Every change was hypothesis-driven and outcome-measured.</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="css">
+              <div class="cssl">Image</div>
+              <div class="imgslot" onclick="earnSeed(event)">
+                <div class="imgslot-ph"><span class="iph-icon">🔮</span>Trust journey map, annotated wireframe, or process documentation<div class="iph-note">NDA-SAFE: journey maps, emotional arc diagrams, and annotated flows work perfectly here</div></div>
+              </div>
+            </div>
+            <div class="css">
+              <div class="cssl">Key Insight</div>
+              <p class="csb">The $5B didn't come from a clever UI pattern. It came from designing the right moment — the 4-second window where a customer decides whether to trust you with something personal. Most designers start with the screens. <em>I started with the fear.</em> That's the difference between design that looks right and design that performs.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ws-chips">
+        <span class="wsc">Trust design</span><span class="wsc">Emotional UX research</span>
+        <span class="wsc">Cross-org collaboration</span><span class="wsc">Dual-surface design</span>
+        <span class="wsc">Acceptance rate modeling</span><span class="wsc">Field validation</span>
+      </div>
+    </div>
+
+    <!-- 03 EQUIPMENT DELIVERY -->
+    <div class="wslide" id="ws2">
+      <div class="ws-bg" style="background:var(--pink)"></div>
+      <span class="ws-icon" onclick="petPlant(event,this)" style="color:var(--pink)">✈️</span>
+      <div class="ws-eyebrow" style="color:var(--pink)">Shipped · The Home Depot Rental · Field research + systems rebuild</div>
+      <h2 class="ws-title">Everything was a band-aid.<br>So I flew to Atlanta.</h2>
+      <p class="ws-body">The scheduling systems, date-time components, and associate equipment lookup app were technically functional — and fundamentally broken. I could have redesigned from my desk. Instead, I flew to Atlanta, walked rental hubs and warehouses, and interviewed associates on the floor. The answer to why something fails is never in a Jira ticket.</p>
+      <div class="ws-mets">
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--pink)">3.2→4.6</div><div class="wsm-l">Medallia score (of 7)</div></div>
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--pink)">2–3 yr</div><div class="wsm-l">Roadmap left behind</div></div>
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--pink)">Atlanta</div><div class="wsm-l">On-site field research</div></div>
+      </div>
+      <button class="cs-toggle" onclick="toggleDrawer(this)">
+        ↳ Full case study <span class="cs-arrow">›</span>
+      </button>
+      <div class="cs-drawer">
+        <div class="cs-drawer-inner">
+          <div class="cs-content">
+            <div class="css">
+              <div class="cssl">The Problem</div>
+              <p class="csb">Large equipment delivery at THD was supported by a fragmented stack — scheduling components, date-time selectors, and an associate-facing equipment lookup app that had been patched over time without cohesive design direction. The system worked just enough to avoid replacement, but failed in ways associates had built workarounds around. Customers faced confusing scheduling flows. Associates used the app differently than it was designed. The system's biggest problem was that nobody on the product side had ever seen it used in a real warehouse.</p>
+            </div>
+            <div class="css">
+              <div class="cssl">Process</div>
+              <div class="cssteps">
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(255,170,212,.15);color:var(--pink)">1</div>
+                  <div><div class="csstep-t">On-site field research — Atlanta warehouses</div><div class="csstep-d">Flew to THD rental hubs and large equipment warehouses in Atlanta. Spent time observing associates handling delivery coordination, loading logistics, and customer communication in their actual environment — not in a meeting room. The most critical insights came from watching what people did vs. what they said they did. Real conditions revealed that the app's information architecture didn't match the physical workflow at all.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(255,170,212,.15);color:var(--pink)">2</div>
+                  <div><div class="csstep-t">Customer journey research</div><div class="csstep-d">Ran parallel research with customers navigating the scheduling and delivery experience — from initial booking through day-of delivery coordination. Mapped the gap between customer expectations set at booking and the reality of the delivery day experience. Identified three high-friction moments that accounted for the majority of negative Medallia signals.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(255,170,212,.15);color:var(--pink)">3</div>
+                  <div><div class="csstep-t">Ground-up system rebuild</div><div class="csstep-d">Redesigned scheduling flows, date-time selector components, and the associate equipment lookup and information architecture from scratch. Collaborated directly with engineering on backend architecture decisions — not just handing off specs, but working through technical constraints together to ensure design decisions didn't create downstream system debt.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(255,170,212,.15);color:var(--pink)">4</div>
+                  <div><div class="csstep-t">Roadmap handoff + impact measurement</div><div class="csstep-d">When I transitioned teams, I left a fully documented 2–3 year roadmap based on field research findings — prioritized by impact and implementation complexity. Medallia scores moved from 3.2 to 4.6 (out of 7) during my ownership. The team is still building from the roadmap today — which is the outcome I was designing for.</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="css">
+              <div class="cssl">Image</div>
+              <div class="imgslot" onclick="earnSeed(event)">
+                <div class="imgslot-ph"><span class="iph-icon">✈️</span>Journey map, scheduling flow redesign, or field research documentation<div class="iph-note">NDA-SAFE: journey maps, annotated flows, process diagrams are all fine</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ws-chips">
+        <span class="wsc">Field research</span><span class="wsc">Systems redesign</span>
+        <span class="wsc">Dev collaboration</span><span class="wsc">Associate UX</span>
+        <span class="wsc">Scheduling architecture</span><span class="wsc">Roadmap planning</span>
+      </div>
+    </div>
+
+    <!-- 04 AI FREIGHT -->
+    <div class="wslide" id="ws3">
+      <div class="ws-bg" style="background:var(--blue)"></div>
+      <span class="ws-icon" onclick="petPlant(event,this)" style="color:var(--blue)">🤖</span>
+      <div class="ws-eyebrow" style="color:var(--blue)">In build · The Home Depot Freight · Sprint design, exec-presented</div>
+      <h2 class="ws-title">5 days.<br>Executive presentation.<br>Now in build.</h2>
+      <p class="ws-body">During a 2-week innovation sprint, I had five days — concept through full Figma designs. The problem: every store's freight layout is unique, but the existing associate app was completely rigid. My solution used AI at the product level — not just as a design tool, but as an experience layer that makes the product smarter for the people using it.</p>
+      <div class="ws-mets">
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--blue)">5 days</div><div class="wsm-l">Brief to exec presentation</div></div>
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--blue)">AI-native</div><div class="wsm-l">Product-level AI design</div></div>
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--blue)">Greenlit</div><div class="wsm-l">Freight team building now</div></div>
+      </div>
+      <button class="cs-toggle" onclick="toggleDrawer(this)">
+        ↳ Full case study <span class="cs-arrow">›</span>
+      </button>
+      <div class="cs-drawer">
+        <div class="cs-drawer-inner">
+          <div class="cs-content">
+            <div class="css">
+              <div class="cssl">The Problem</div>
+              <p class="csb">Every THD store receives freight differently — door configurations, team size, equipment type, and storage layout vary significantly by location. The existing associate app was completely rigid: same interface for every store, ignoring the physical reality of each receiving environment. Associates improvised daily, making sub-optimal decisions about cart allocation, door assignment, and team coordination because the tool didn't know anything about their store's actual layout.</p>
+            </div>
+            <div class="css">
+              <div class="cssl">The Solution</div>
+              <p class="csb">A <em>customizable floor mapping tool</em> — associates configure their store's specific layout once (doors, cart positions, equipment zones), then the tool uses that configuration as context. Layered on top: an <strong>AI recommendation engine</strong> that uses historical layout maps, current team size, and incoming freight manifest to surface optimal configuration suggestions in real time. The AI learns from each store's patterns over time. The associate stays in control — the AI adds context, not mandates.</p>
+            </div>
+            <div class="css">
+              <div class="cssl">5-Day Process</div>
+              <div class="cssteps">
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(114,200,255,.15);color:var(--blue)">1</div>
+                  <div><div class="csstep-t">Day 1 — Mental model before Figma</div><div class="csstep-d">Mapped the core design question: what inputs does the AI need, what outputs does it provide, and how does an associate actually use a recommendation in a high-pressure warehouse environment? Defined the interaction model — suggestions surface as a separate layer the associate can apply, modify, or dismiss — before touching any design tool.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(114,200,255,.15);color:var(--blue)">2</div>
+                  <div><div class="csstep-t">Days 2–3 — Floor mapping tool</div><div class="csstep-d">Designed the drag-and-drop floor configuration experience — associates place doors, define cart zones, and set team positions for their store's specific layout. The UI needed to work on industrial tablets used in warehouse conditions (dusty, bright ambient light, gloves-on interaction). Tested interaction models for touch accuracy in those constraints.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(114,200,255,.15);color:var(--blue)">3</div>
+                  <div><div class="csstep-t">Day 4 — AI recommendation layer</div><div class="csstep-d">Designed how the AI surfaces suggestions — overlaid on the floor map, with confidence indicators and the reasoning behind each recommendation. Designed the feedback loop so associates can confirm, override, and teach the system. The interaction model communicates that the AI is a collaborator, not an authority — critical for adoption in a workforce that's skeptical of tech that "tells them what to do."</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(114,200,255,.15);color:var(--blue)">4</div>
+                  <div><div class="csstep-t">Day 5 — Executive packaging + presentation</div><div class="csstep-d">Packaged the concept for exec leadership with clear business framing: operational efficiency gains, error reduction, and scalability without adding headcount. The AI layer requires infrastructure investment so the team is phasing implementation — the mapping tool ships first, with AI recommendations added in a second phase. The concept was fully greenlit. My Figma files are the foundation the freight team is building from.</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="css">
+              <div class="cssl">Image</div>
+              <div class="imgslot" onclick="earnSeed(event)">
+                <div class="imgslot-ph"><span class="iph-icon">🤖</span>Floor mapping wireframes or AI recommendation flow diagram<div class="iph-note">You have the Figma files — export an annotated wireframe or flow</div></div>
+              </div>
+            </div>
+            <div class="css">
+              <div class="cssl">Why This Is Relevant for AI/ML Product Design</div>
+              <p class="csb">Netflix's Content Intelligence team works at the intersection of data science and design — building tools that help content executives make better decisions using ML-powered insights. This project demonstrates exactly that skill set: <em>designing AI into the product experience itself</em>, with a thoughtful model for how humans and algorithms collaborate in high-stakes, time-pressured environments. I designed the feedback loop, the confidence indicators, the override mechanics, and the communication model for why the AI is making each recommendation. <strong>This is what it looks like to work with data scientists, not just alongside them.</strong></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ws-chips">
+        <span class="wsc">AI product design</span><span class="wsc">Sprint execution</span>
+        <span class="wsc">Operations UX</span><span class="wsc">Executive storytelling</span>
+        <span class="wsc">Tablet-first design</span><span class="wsc">Human-AI interaction</span>
+      </div>
+    </div>
+
+    <!-- 05 ELEARNING -->
+    <div class="wslide" id="ws4">
+      <div class="ws-bg" style="background:var(--amber)"></div>
+      <span class="ws-icon" onclick="petPlant(event,this)" style="color:var(--amber)">⚗️</span>
+      <div class="ws-eyebrow" style="color:var(--amber)">Shipped · eLearning company · Sole designer + brand lead · Zero to one</div>
+      <h2 class="ws-title">Zero to one.<br>Under four months.</h2>
+      <p class="ws-body">Brand identity, application architecture, event management, social features, direct messaging, and hosted eLearning content — all from a blank canvas in under four months. Not "here's a style guide, go design screens." I defined everything: visual language, information architecture, feature set, content model, and end-to-end user experience. Then shipped it.</p>
+      <div class="ws-mets">
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--amber)">0→1</div><div class="wsm-l">Full product, from blank canvas</div></div>
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--amber)">&lt;4 mo</div><div class="wsm-l">Concept to live product</div></div>
+        <div class="wsm" onclick="earnSeed(event)"><div class="wsm-v" style="color:var(--amber)">6 surfaces</div><div class="wsm-l">Brand + 5 feature areas</div></div>
+      </div>
+      <button class="cs-toggle" onclick="toggleDrawer(this)">
+        ↳ Full case study <span class="cs-arrow">›</span>
+      </button>
+      <div class="cs-drawer">
+        <div class="cs-drawer-inner">
+          <div class="cs-content">
+            <div class="css">
+              <div class="cssl">Scope</div>
+              <p class="csb">Six surfaces, all designed from zero: <em>Brand identity</em> (visual language, type system, color palette, logo, guidelines), <em>eLearning module system</em> (content hosting, progress tracking, completion states, certificate flow), <em>Event management</em> (discovery, creation, RSVP, live attendance, post-event), <em>Social feed</em> (community engagement, content sharing, reactions), <em>Direct messaging</em> (peer and instructor communication, file sharing), and <em>Information architecture</em> (global navigation, content hierarchy, cross-surface consistency). Every decision was mine.</p>
+            </div>
+            <div class="css">
+              <div class="cssl">Process</div>
+              <div class="cssteps">
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(255,208,128,.15);color:var(--amber)">1</div>
+                  <div><div class="csstep-t">Brand foundation before screens</div><div class="csstep-d">Established the visual language first — because every design decision downstream flows from brand clarity. Defined type scale, color system, spacing principles, and component patterns before touching a single app screen. The brand needed to feel credible for professional eLearning while remaining approachable for community interaction. Those are competing requirements that needed resolution at the visual language level before they could be resolved at the UI level.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(255,208,128,.15);color:var(--amber)">2</div>
+                  <div><div class="csstep-t">Architecture before UI</div><div class="csstep-d">Mapped the full information architecture before designing a single screen — content model, feature relationships, navigation hierarchy, and cross-surface user flows. Zero-to-one products fail when screens are designed in isolation. The architecture is the product. Getting it wrong at this stage means expensive redesigns later; getting it right means every surface feels coherent without extra effort.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(255,208,128,.15);color:var(--amber)">3</div>
+                  <div><div class="csstep-t">Surface-by-surface execution in priority order</div><div class="csstep-d">Designed each surface sequentially by user value — core eLearning experience first (the product's reason to exist), then events (highest engagement driver), then social and messaging (retention and community). Maintained visual and interaction consistency across all six surfaces while allowing each to have the specific patterns that fit its use case. Component reuse across surfaces was built into the design system from the start.</div></div>
+                </div>
+                <div class="csstep">
+                  <div class="csnum" style="background:rgba(255,208,128,.15);color:var(--amber)">4</div>
+                  <div><div class="csstep-t">Launch — full product, live</div><div class="csstep-d">Shipped in under four months. Brand identity to working product with six distinct surfaces — events, learning, social, messaging, brand, and architecture — all cohesive, all live. This is what end-to-end design ownership looks like when one person cares enough to think about every decision.</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="css">
+              <div class="cssl">Images</div>
+              <div class="imgslot" onclick="earnSeed(event)">
+                <div class="imgslot-ph"><span class="iph-icon">⚗️</span>Brand overview — logo, color palette, type specimen<div class="iph-note">You mentioned having more images for this project — add your best here</div></div>
+              </div>
+              <div class="imgslot" onclick="earnSeed(event)" style="margin-top:.75rem">
+                <div class="imgslot-ph"><span class="iph-icon">📱</span>App screens — eLearning module, event page, or social feed<div class="iph-note">Add 1–2 of your strongest screens</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ws-chips">
+        <span class="wsc">Zero-to-one product</span><span class="wsc">Brand identity</span>
+        <span class="wsc">Information architecture</span><span class="wsc">Full ownership</span>
+        <span class="wsc">Content systems</span><span class="wsc">Component design</span>
+      </div>
+    </div>
+
+  </div><!-- end wstage -->
+</div><!-- end p2 -->
+
+<!-- ═══════════════════════════════════
+     P3 — ABOUT
+═══════════════════════════════════ -->
+<div class="panel" id="p3">
+  <div class="ab-l">
+    <h2 class="ab-hed">Strategic designer.<br><em>Systems thinker. Researcher first.</em></h2>
+    <p class="ab-body">
+      Four years at <strong>The Home Depot</strong> leading design for enterprise-scale internal tools — the kind of work that directly moves billions of dollars and affects how thousands of associates operate every day. I've designed for complex, data-rich workflows under real constraints, working with PMs, engineers, data scientists, and C-suite stakeholders to bring clarity to ambiguity.<br><br>
+      My approach: <strong>find the problem no one named, build the research that proves it, then design the system that solves it at scale.</strong> I measure impact. I leave roadmaps behind. I make organizations permanently smarter about design.
+    </p>
+    <div class="geek-shelf">
+      <div class="gpill game" onclick="earnSeed(event)">🃏 Magic: The Gathering</div>
+      <div class="gpill game" onclick="earnSeed(event)">🌊 Avatar: TLA</div>
+      <div class="gpill game" onclick="earnSeed(event)">🎮 Video games</div>
+      <div class="gpill game" onclick="earnSeed(event)">🐉 D&D</div>
+      <div class="gpill cosmic" onclick="earnSeed(event)">🌙 Astrology</div>
+      <div class="gpill plant" onclick="earnSeed(event)">🌿 Herb garden</div>
+      <div class="gpill plant" onclick="earnSeed(event)">💧 Hydroponics</div>
+    </div>
+    <div id="gardenMeter">
+      <span id="gardenMeterLabel">🌱 Your garden is growing...</span>
+      <div id="gardenMeterPlants">
+        <span class="gmp">🌱</span><span class="gmp">🌿</span><span class="gmp">🌸</span>
+        <span class="gmp">🌺</span><span class="gmp">🌳</span>
+      </div>
+    </div>
+    <div class="ab-side">
+      <div class="ab-shine"></div>
+      <div class="ab-side-lbl">Outside the day job</div>
+      <div class="ab-side-title">Theme park companion app — co-founder & designer</div>
+      <div class="ab-side-body">Brand identity, UX, Discord community, beta research ops, influencer partnerships. Same level of care. Zero corporate budget. Building this because I genuinely love the problem.</div>
+    </div>
+    <div class="ab-side" style="margin-top:.75rem;">
+      <div class="ab-shine"></div>
+      <div class="ab-side-lbl">What I bring to a staff-level design org</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.375rem .75rem;margin-top:.5rem;">
+        <div style="font-size:11px;color:var(--fg2);">✦ Enterprise tool design</div>
+        <div style="font-size:11px;color:var(--fg2);">✦ AI/ML product thinking</div>
+        <div style="font-size:11px;color:var(--fg2);">✦ Complex workflow systems</div>
+        <div style="font-size:11px;color:var(--fg2);">✦ Data-driven decisions</div>
+        <div style="font-size:11px;color:var(--fg2);">✦ Cross-functional leadership</div>
+        <div style="font-size:11px;color:var(--fg2);">✦ Executive alignment</div>
+        <div style="font-size:11px;color:var(--fg2);">✦ Figma mastery</div>
+        <div style="font-size:11px;color:var(--fg2);">✦ Field + qual research</div>
+        <div style="font-size:11px;color:var(--fg2);">✦ Design systems at scale</div>
+        <div style="font-size:11px;color:var(--fg2);">✦ Zero-to-one product</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ab-r">
+    <div class="tc" onclick="openT(this,0)">
+      <div class="tc-top"><span class="tc-ico">🔍</span><span class="tc-tit">I go to the source</span><span class="tc-arr">›</span></div>
+      <div class="tc-bod"><div class="tc-bod-inner"><div class="tc-bod-text">I flew to Atlanta to walk warehouses. I interview operators on the floor. If the answer exists in the physical world, I go find it. The most critical design insights are never in a Jira ticket.</div></div></div>
+      <span class="tc-sprout">🌱</span>
+    </div>
+    <div class="tc" onclick="openT(this,1)">
+      <div class="tc-top"><span class="tc-ico">⚡</span><span class="tc-tit">AI & data at the product level</span><span class="tc-arr">›</span></div>
+      <div class="tc-bod"><div class="tc-bod-inner"><div class="tc-bod-text">I design AI into product experiences — not just use it to work faster. The AI Freight Tool uses ML recommendations to help operators make better decisions in real time. I also built AI-assisted research workflows that are now standard at THD. I'm fluent in how data science teams work and what they need from design.</div></div></div>
+      <span class="tc-sprout">🌿</span>
+    </div>
+    <div class="tc" onclick="openT(this,2)">
+      <div class="tc-top"><span class="tc-ico">🗺️</span><span class="tc-tit">Long-term vision, not just sprints</span><span class="tc-arr">›</span></div>
+      <div class="tc-bod"><div class="tc-bod-inner"><div class="tc-bod-text">Every team I leave has refreshed journey maps, updated personas, and a roadmap they're still building from years later. I set design direction that outlasts any single sprint. That's the difference between a designer who ships and one who shapes.</div></div></div>
+      <span class="tc-sprout">🌸</span>
+    </div>
+    <div class="tc" onclick="openT(this,3)">
+      <div class="tc-top"><span class="tc-ico">🎯</span><span class="tc-tit">Strategic influence at scale</span><span class="tc-arr">›</span></div>
+      <div class="tc-bod"><div class="tc-bod-inner"><div class="tc-bod-text">I've presented to executives and gotten greenlight on concepts I generated without a brief. I've aligned 10+ cross-functional stakeholders on a multi-year roadmap. I know how to work across enterprise orgs — from ICs to C-suite — and make design land.</div></div></div>
+      <span class="tc-sprout">🌺</span>
+    </div>
+    <div class="tc" onclick="openT(this,4)">
+      <div class="tc-top"><span class="tc-ico">🌍</span><span class="tc-tit">Remote-first, globally-minded</span><span class="tc-arr">›</span></div>
+      <div class="tc-bod"><div class="tc-bod-inner"><div class="tc-bod-text">Looking for a globally accessible role where the problems are complex, the team is sharp, and design shapes the product direction — not just executes it. Strong ethics non-negotiable. Curiosity: unlimited.</div></div></div>
+      <span class="tc-sprout">🌳</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     P4 — CONTACT
+═══════════════════════════════════ -->
+<div class="panel" id="p4">
+  <div class="ctbg"><div class="ctb1"></div><div class="ctb2"></div><div class="ctb3"></div></div>
+  <canvas id="p4botC"></canvas>
+  <div class="ct-avail"><div class="ct-dot"></div>Available for staff-level roles</div>
+  <h2 class="ct-hed">Let's build<br><em>something that matters.</em></h2>
+  <p class="ct-sub">Looking for a <em>remote-first</em> staff-level role where I lead design strategy for complex enterprise systems, work directly with data scientists and PMs, and shape how entire product verticals look, feel, and function. High performance, high autonomy, <em>real impact.</em> That's the environment I thrive in.</p>
+  <div class="ct-btns">
+    <a class="btnf" href="mailto:schnecklothkiele@gmail.com" onclick="earnSeed(event)" style="text-decoration:none;display:inline-flex;align-items:center;">Email Kiele</a>
+    <a class="btno" href="https://linkedin.com/in/kiele-schneckloth" target="_blank" onclick="earnSeed(event)" style="text-decoration:none;display:inline-flex;align-items:center;">LinkedIn</a>
+    <a class="btno" href="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNCAwIFIgL0Y0IDUgMCBSIC9GNSA2IDAgUiAvRjYgOCAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EtT2JsaXF1ZSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjMgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago1IDAgb2JqCjw8Ci9CYXNlRm9udCAvWmFwZkRpbmdiYXRzIC9OYW1lIC9GNCAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjYgMCBvYmoKPDwKL0Jhc2VGb250IC9TeW1ib2wgL05hbWUgL0Y1IC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKNyAwIG9iago8PAovQ29udGVudHMgMTQgMCBSIC9NZWRpYUJveCBbIDAgMCA2MTIgNzkyIF0gL1BhcmVudCAxMyAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKOCAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkT2JsaXF1ZSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjYgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iago5IDAgb2JqCjw8Ci9Db250ZW50cyAxNSAwIFIgL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXSAvUGFyZW50IDEzIDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iagoxMCAwIG9iago8PAovQ29udGVudHMgMTYgMCBSIC9NZWRpYUJveCBbIDAgMCA2MTIgNzkyIF0gL1BhcmVudCAxMyAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKMTEgMCBvYmoKPDwKL1BhZ2VNb2RlIC9Vc2VOb25lIC9QYWdlcyAxMyAwIFIgL1R5cGUgL0NhdGFsb2cKPj4KZW5kb2JqCjEyIDAgb2JqCjw8Ci9BdXRob3IgKFwoYW5vbnltb3VzXCkpIC9DcmVhdGlvbkRhdGUgKEQ6MjAyNjA1MDQwMzQ5MDArMDAnMDAnKSAvQ3JlYXRvciAoXCh1bnNwZWNpZmllZFwpKSAvS2V5d29yZHMgKCkgL01vZERhdGUgKEQ6MjAyNjA1MDQwMzQ5MDArMDAnMDAnKSAvUHJvZHVjZXIgKFJlcG9ydExhYiBQREYgTGlicmFyeSAtIFwob3BlbnNvdXJjZVwpKSAKICAvU3ViamVjdCAoXCh1bnNwZWNpZmllZFwpKSAvVGl0bGUgKFwoYW5vbnltb3VzXCkpIC9UcmFwcGVkIC9GYWxzZQo+PgplbmRvYmoKMTMgMCBvYmoKPDwKL0NvdW50IDMgL0tpZHMgWyA3IDAgUiA5IDAgUiAxMCAwIFIgXSAvVHlwZSAvUGFnZXMKPj4KZW5kb2JqCjE0IDAgb2JqCjw8Ci9GaWx0ZXIgWyAvQVNDSUk4NURlY29kZSAvRmxhdGVEZWNvZGUgXSAvTGVuZ3RoIDMxNTcKPj4Kc3RyZWFtCkdhdG08OFVLMk8nIyFJMGklVSdFWW5XPDdCdEpHU0ZEUTBWQGpkO3NiYTNyOCYuKHNCUDY7ZylYXzwxXl1FMVc9WlFqWjZEaXVQIzxOZmBCLk5pLC9IakIoWD11LGc7JT08TD1ZVFJJODM9QDEvJCttYFVWYC06LkhrRV8xUEAsKjFqPlt0c0AwMyRdaC9iYCtkN2tYbldTdSxqcjVPMy5CVW4jSE9EVmMvNzk4SFJIJjRDRyg6bEBqQj9dOXU7QT1fMjo/Um01bWc8WGgwQTRTbG0saFpeZ0YlQlBHKVhFYSo5X1MlPT84Uj9bPV1rRSJcRj1HRG1JcilFb0VDLyliJzExaz5malwrPEYlamojQHM7JiooVXE6PjY7Q25MK1sockYsbDhaTDxlXnJxRU1UWjVCRjxsbUczXTslZzorJik8aGM4YzsxYDM+YCFyaj1wLWxHTUsiTz5uPF0tbHM4dGtVJ0tUTWxhLFx1Y0ciWzstYzNyLSxyQixXTDtAX28qO1hsPElAY0FLbWlWUG1VRnBlVlc8NzxlXy85TTBVL1kvJUYvYi80SUNWIicvTiJUV0RUYis7TkFhZyRGRSluP1tXISJmXGVDTDUjZmJLJUhMOVcyUlUrPk1mNE9dUUlHLUcyJWAubCItbEdKMWFvRzZqbkVLRCY7WWcwdShSOklwWj9WblReRy43a2s2ST5KcUlROmYoU00/a0FdQmlDQyhSbykzO24vR0hAOjg9aVNFYW5CWGA+Qz8yQ11kM0ZgIU44WiRoTFFxVnJzIm9hc3M7PE1dK0FFNW5VWE8rQUA3TSZrT2NbM1lxOjoiTC9LLVpANTg7PmQ7QEVZdDZSZ1JqYEw/cGYsJzZeNCsmWD9XVkNNaThWQy41MUo0TiJWRGMhN0xJV1lAXm48Z0hUdDE3czhJcF5lRWhxYGRKKmNTIXFRVjsjWyhQXz1mSClobTgwLFMmSmozJzxlSiMmKSpEWmNOdDNobi1TUkIiLSpbKDstKSVhXkpwLUI2MjhRMCJCMi9YdSssSSkxUFkqLyQjT2g/PjlIK2ZgLElaSWhSIiZGTk1BR1xTPFtFYlQ5aitkPVxTXzRNKTQ7bU9uVEI/U0FUMm0nJz47RytrNTdZWTRbI0cwMEVKSkJiRmhSaDtoMmtVOj1NaGcwXS1sYU1GLSczIV8rXWQsJ1Mlb1ZwMCleXj1ONVFNOmYwKCtxamcoQ2JYS1JoaEBYWUVPITE3I0tDQHFwUS8xaWxlVVBxcmUrZWM7VV1fNzpCOWFxVU9RODUkZC5TNSRDKlxWRG8nSHJfXEtbOmwvOlJUaE0xLkBdaUc6VUZrS11rLmN0bDg6aThudCY8Iy9fR1hrR05KbWBiYlcyZmlgZSI9RkhtM1FSblIiNUtZa1thU2UmQGRkVEdrISReIi8vSEg0NzhfTiZrZTVXYCVkLSdxVkkjMGBcVFUrYUZlO2ZhSz1YJV8iRUlrIllSN3NkSzIqV1w4XEg4PFEjOC8tXE1KNUkiXlkxI0NJWV9vaVYnbTxMXGEockplJExaTmtvcUdoTS9PV1QwYkdJcSpVZFlYQ0w1ISxSIlkwYCVJKzZtQ0g7YiMzMWtLNVRHLkFaTykrIkIxMTBCLG5RQGJTcUYrRDYsTjwrTEpZa1xwImgnLSZQJD9uLDREJUo5TnJiUjdtSF8/aUo0V2g2R0M9MFZOUFtuPyg9PzBVZjYpR0NDOGwsbVE2dG5APkloM00lOksiPCZIOCdmZVh0R1xZOiUobSZbM14uNkVSXFk+VDUuYmpMIWswLjBRN0ZbODJDSy9GJFxUR0tZSVRlLmxYZlhLN0I/ODFpLGpjN3UhRltUWiMuXWpccyZJLnJ1IiFHOE0lQUxpRTk5YC8pcHFZYSFgbEFtaV8kVDg/ajJFNTpQZVRuVD5paE1cRC1mOUFDKDEwKXB1Z1NVLTEhNjZFPCNWdWVtQkQ2ZilMaWw8QWxsNkMiO2VoKUZAbFwyW0ZAcjNgIjdWZjtNN0crT2ZIRG9IakNfYmFtUiZVUzUmcV9nLm5EPDtgZUtrZkE+aiZrZCE1c1ReTG4vZzVDOkJLcWpHLHJSRD9HbFVqXyxvbmBGKlg5Yk9vZzVtRDNFTldrXWVZQ1VBRFpsci1fQzFRRDJMQlRdPDtNJmdBUU5fKDkxZEtxM0o/KjQ5K1BIUTAjJCVjS1g6Yl5RJGJlSGhTZi1RQD1dXFJnLSVzTT1adHNTVDI6KSMvQUQkVCldOllgcHIzNl9ZZ3VyLmtBQXEtSkRaaF5WPy5NJ01lITZxP28iKlteQT5BMiw6RmlebV51ZlpwKlgibmlwLWovIm1kQD4qUjY2c2MtVmMwP1IjTD0mKCs8NDwuYz5LVFVZPD81I3NyP0gjSFU9MUZRPyQwQDhhNT86XmM8N2p0J0chN2FNUkRlWyNlLlBuSVlLKispOEI7UWQ5LS1YQ05SNjM3U1tdIURLTFgtPUUlQz9AOjpVLmtYNj51bGwlL28xMEIvVy0tXCk6OFNDViUoIT1DKjpWTixWQEZOSCxLVlhOTk5EaVVmSUBSXSRSLGEoZGpIYik9RmpMXjdoZiprSSFYUjZOJ2RGRWpQaWIzWDwvbCw1WkM0aDhnV29nOD4kak1KVSNNY2whXm5uOGsyM11MKWhqVi5yXS9BNWgiPzUja2ZJWGFJPzdBVTBIVzdIPFB1W2FvOWFFW2tdMjlTQTRjbVdnQD5IailoQjYjdU4pJlNiMm4mX1QyWTstUj5UIl0qclg0Y1A4OlhySF1DUCpGb0hDMCFZT01qQkdca3NSLkItIjBPRCNwS28oOmZhTmJLTmgxWWtQNTpWOHJVYE48I1JrQSktJEw7X2InImZmRj5sckU/IzM8K0JnbFY/YENTNjZwSnEzUjxAMkooUi0rOmhfbks3KUt0dFghNWdiTTJvZzAoTDRTblFqYHE/RiNuKU5IbF04anMuYTw+aiRdNSgwPChQKE9lMWhoJCEiYEcqSmlqL3NIakhVcCV0KCY6WV5tUUQ7O0ZtSS5TPEo9RFBwSGFdZXUoTyNgQWFxZiM/LGdMJENTTiNAcWxRODxGMjxrYmYsT0NKcD40ZVZIQWM5UmJoSWxVN09zIUpqazQ+Y3VWMTRkSDVlSVdlLyIwS0ZNKV09TlZyaE9xRj9CYVhSZ05YUVY8LClRIlE9bDtdXUFwWnI7L10qKyIzXSdDbCk2XlhGUWJsTHM4Li1ZUmZPNmsiO1UyOjpFV3IlbyMyNzVVSlZpaT1QPGglJC5LYk8jSEpcQU5dLklSNkgnOUZaQCE6KlwyOnQ6JytGYE4mJW5uQG1QTFhRa2ljYzM6RG0uamkjcy9DYEIzdDRaZnNRKCwoaFg6MkwyQlhtO2kqUEZPXnV1J1VXJCE/TVVyNnIvYkVyRSYkPCQ/YyJzPTRXSl5QbGdSI1VzSzlOXzcwX0tMX0d1SEhcVyM2TD5WJFs9YDIwUSNlcG43RUJlc0ghUVZfazwyQkBgOUI8MFszO1k3Qi9pWiVQb0E6OlYpOVxXRkJjX21uW2ctUjNkZCUqaGVkbHNmYiFwdCtuNlBOND9QWVNrYT9BZD9UYHA+bG9tX00oQlRoSD1eRDdrKmt0cTduMittSWdBMW5GZSltNmtBWUREayksTFtyLmYyZDtBZy4tLnVZOzAlazc0J1hEIis2ci5jQkUhTjgkcGNJWTVuSVkjKl9VPjhSW1oqP1NoY1JEImkqKTtYKjIlUDZAZFZgcyQ6O29kN3U4OkVdRllKSW9XOV1hMldVZUomQFNaJ2hSPk5JTik1IiQxWVVSdC9aK0xZZzNsbT5HRlFJP2w4RXNpW1VzYkVUb28/MkoyTUhbcEdzQF4sMyxVXFM0LnRxI0pyWUIscy8+aj5XM1gjISRcamtwYiwkUS5CMC03VktBXmlaPmlldD0uUjtPTCpaPDgtY2slYEcsQnM8Qm1cdU4yaDpOJEVrSi5UKUdoaScmWVFfPj5cLSJCWC1YWD89dEtsXl9UUGE0ZS85JktoaVs3QiYuXlMyQS1UL2BIXzdmaDVJQiJfVisnR0AnRVc6MlBlN3BPcmdqJlZedGZLYlRSR0NYU1FvYyUqbCI0bEVxUyUqS2kwY1FuajQ9JFJsVGJPMmNuZkYyKjFeI0gwbWZdOW4yUidgZCpvXmNTT0lHOzpdUmhQZUhpVlFhUkVmfj5lbmRzdHJlYW0KZW5kb2JqCjE1IDAgb2JqCjw8Ci9GaWx0ZXIgWyAvQVNDSUk4NURlY29kZSAvRmxhdGVEZWNvZGUgXSAvTGVuZ3RoIDMzMTIKPj4Kc3RyZWFtCkdhdG09PkM1J3AmcS8qMFcwYlZoKj9aSTVxIXNbJTM5LFsuNEdOM2gjSlcpbiRUYVUnTUhWY0RKLFB1KGVjZCErUCdEInU9UiZQJWVZdUtGM2RwO1BHTWRsRzEiImA5XXRXaTNoa1BIZnJNL2NtYykzQ2ReXElNcz9dSCtQaC4lQXRITUksQjRORUVHJ2tSb2ZtWj9RY1ZYZCxdbEBeNzRlRmdzS2ZvZk9KU2k8Qj5SOUhVWWo+JWlEbWlqM0RjOWBCR29dRCNkQnImaUoncSVkWllHPiMicyJfLURrblZJWEBVNjBAXCE9LVNEKHNWaDZBQE9iS15rOj1fVSJLI0JlOWFtLFVjP1hEKXMhWzhLYj0zPmJlYTA3NS9Da1Q/ZElyJ2ohL2E1WG9LMzFSSnRxLXI9PlNZXD5TYiwkZVtibSNwVUJcWyZoXVMxMycjQT40MSNdaUYnbTwoJUdCSFBzNSpdb2smVztdIWp1WikjTyRgXywzJmc2Z1RFcS1PczwxKmkmZ0A6Iks1MCwiXE4iQ2xUJlhbWEheSilnOXVebDIkQy9oam5VYFs9UThYQEVAMzAkZjRaRFJJOyFmTyRfdCo0cVVFQVxPaylGPURTUFdFYCJeWUEqXmgxTDgoJGs2SzNNTkBRNmJfZkctN2hxQFJvSTNrT20/T2w7UEtyYSpEQHBBRFs3JD8wbjRML3E7T002WWMwbihyPUAiZ09hMkw7UC5OX2NUKUg2Im8vOlc+Q0I7cyg1UExsa1FlI25UXyRUakF0NStcL00mQVFIWlNJT2VBOUBvYCkkZF9DXilhVVA/aTNgbWIyJCVRLCZBP2VeW181JyFiUjFzblZVYSFuXVZgUClzbyFRT3MsZXA4MidVZT05Z0huPz43QjJFPmc5X1ByL1lIWiVBSjIhKC5XNXQzJCFfKHJUNDo+dWEvVDlZYFMxJ0xPQjssKy5oJ3M6ODhGS28/bCkpUV0qajdeXS8yJGM/UStQSjBJckVjMklrJi1iWEliZ21jTFovXFZfc0BvUiNyVHJwVUYsJUxTLDkocE4qOGM3KnFJZmgoJCYpKTQ4LCdDPl9nOkJ1NXVQWyxDUy5wLSE7QG5CMGovZlIyRmEvTWhkPGZYQitWPWdbK20zOlQ6QVlHSmwmbkRENUM3U1QyTD5SYC41MVJBOk40Il1gSjBFPnQ7U0tBYVosaXApMCFKQFcpc2pWUS0jdT1PLCU6JHROMSNeZStXJC0wbiJRbEQ/SjdQQjtCZFwtJFUybWtGQF1hSDk5JTVAJm1YZkBZT25SKiUkZlcsMWk3MytjPzZpbSFCVFBKSSxkPTtpZTwhYVlackM/ZVsiXjU2ZWRrclg6a1p0P0w9dEwpPz1Ua05EJCdcL2skMG5fYkFSKURjPEJPOjFOTyhOb2wnLk1jXm5aOjJuOiY2WyJZPFsvbUUibyk0TDduYkRsbWQmNHFBMnQoJnVHJkMha2g/YDVON2hOdWVYWkdhYlpic1VOWzsrI09HSm4wcUYzaTotW284ZGxtbGxJSjwiLzUtR0MoUzQpWGkmcDVWRiFPbSllUWVGIyZANjVDXUFCT2xfRFQ/PSsrMXAlSjpLYHRPYW5aXycmWilZVWJbaTtiT28hQSc/QGs0PV8xcGhNNSZVYjRCbW1AZ3BKSW00ZXBEcXAkMHBNRl1qaTA/al0lQTkrNGplcFJLPTlidGJhQjdXcmEiVE03V0dWRnQvM0RJU1lSNkVLNEcwLnA3PFc9YzdqT1Q8Z0lyMmszaTtyITlLVVAoPXNbVD87cyM1MDx1LjFaVWVOV21TbnVwQmAlI2hAX2BLUlMtbC8+Uj1OKz5HZ0RIOHNDREI5Xyg0dEdQUVt0PFZAQTFtT2pbZj8nS0swcjZoYlAnPiUhUzVHSjZmIStGRGlgcC9JQyoyJ01DMCo/RWRsUGFnKUlOMEVOKFhCPGNPPDZVJyxENkErZ10iMGk+PGk6MF47XkdQcTFWODlgSjxnQ1E3O146SjYzRW5pOTVtZzhRZmhuJy4rRDRRWm00S0J0NlR1R09oZS1sLTtqTWs3VWdoXC8pIyMxWFNtJzxYYTMkVTMiIUInLyQvQi5aYCFeLiglPSY9PkZmbytqcUdDWjNqJFEkcmF1JDFPXj9cMi1TK2JFXjlxPyssQjxcVjpFUHVnYU0pX3FkX0gnWyksNzFtSEFEOXJmLEo/IWoqN2p1bDVcO2tvbiRwbDw+XiZmLV0qUCNxcjxtQk5dR0Q7PG5SNXNyNWNmc0ZNTS1VUGcnQDZjTCNFW2FwYFlPNTY+JSZTbVt0dCRxJWlLWCkvMWhmMldWIU1OLiItdVpebFNfWFIlIiRLMGROU09BbWhDUmZFS0pOKDhdMyIpXSc6JiVKYWpsaDZAWj82PnVScllaZzcnVCc2US1FMnU7L1diKilTSWBwbipyNmIzNTlnaiNbTzIpNmYkRmJhQ1srSj8xPicwcztfbyheTzhwQnM5ITY7MlI3X1BMWTBQWzAsP3BIPk4naFFMVjRqLWkhYnJYWWQ0KmhYTC9gP2lFPTxUVkdMMygtVmkiWWNUIVMwUSYhKjptXiVpIU5aYSspYS8hPURnNWtNcjFiXSwyR2YkKTxGVEo1YGI/RjQvYFNFZUJyViFfQEhQUClJPTExLDIpMXJiakM6NzluPDlJSD9WVmErOGxeMmFbWy4yR1lmYENdQSdmKVBJPiwjXjc9I2RwJkxsTypLbWJhK3RJOCdXMWhWaDYzKS1pWEclUSE7ZFM8bydnMHAsJk4jVUlLQHJrJThvc1xZNy0zbGNJRSVqP01nayIiLUYuYSZOZFhUODs5cFQwSW9kKUhGc0MnSjpiLS5YTCw9OjtXdTQyWWEmaXBBT0E7WzM1MT8rS21cTzhHInMrXyw8VUVrZDldaGw5PSEvUydcOCE0RT1gMS9YYV5dWCc9JGZHPE8jQ2FWZ01AOE9oW1Y3W1tmZkE4XVs9W3FaQjFnZCNuY2BIQmYsK0N0XV42W2tBTkA2N0Y4PkRLQlREVHNia10xbUQoPXVbSiVAZGlAYzhyckIlXCM/WEdcT2svdUA0VD1hOXQra0hDSWJmc2FKTFVEK2AzVkZbaUVjJUpALW5oRzdUTWRwPSMnNEQ8SUk2JG8/ZEQuQk5bSk1IITpxUWVeKU5XJkk2NzZVPltmSlJmPXM+akRmJC9jcVR0NCNaXCRQcjEtaiw9VzEoVSxWP3RhUi1fK0hUcVluWU4jI2YhSyg7Vlwjal5nMC9ySVY9KUllOWo5WG08PkFNSik4OGNWYzNYRSI3PSQiXWo/RmtUVHE8NmNLMCZlMT87akNNaWlaTUhMKihbJU1waWdDSyhjJUlgYyNMZlZYImIuaU5QYVVYWTgjaUMvLDVdZ0ZZYFM3P0xrTGBIZklkVFsrN1shI1VPKDdtQm80R2I1UCM6ZDAzYV5PNUwlJy1FOFBhSV1VdDdAYkJzbUVYWG40SUMyN2cpUlQsSlg+MStXcjo5KmpqW01SKWwscjZCUVdXWyVYIXRFMFdCLEtsNmdSQmNmKGYjS3JuOysqamlGbXJYL3JATSYnMUlvOCZWSi9ASz5XWSY0MWA9NFVDRXM0XF85XHJwTHRvRDRgWlxHIzouc0QwMUEmXC9dPlZaJiFGY1UtX1lARjRjRk8jZmJgMERFXmcuXCkqZC1xZT9YajVIVS0pJkxnUzZfQz1dTnBELllhJWE5IkA1S01VdVRXUTZjXHNBOF9DW11EPV4vdVVMZFZVNFYrLjtTZDVLPExjSzdcOSFEZ0FDcmM3PERTYEFuYVpYZUtZcjJyR0JDRWZWLl8kUV4/NmQ7KEk+NllTdC5VT1xFVEZuQEhBQE8mcEshXUlUMEsnaVxaa0MoVydUQSJCTmtEcjhgcjpkZCRoUVU0NUFialhuRWpLa3IjUExyNDIpPFYhWUBfS11HW2hhJllWZGZJcTxyVV1gWXU0cms4QzY5Nicnai8xMlBiOy9AVmVUbD5vKm8iTGFkY0RAMl4lZkRPWUNMUnVjRzs7WzpZMHNiJ1c1Vzg3cXBAMzo/R1AjRShmUiZjZ2MlXyhyLC9xWTQ2IyhwZ1lMYWwlOV9FXVEwUmdTQG5uWEtINDhaUFxkWEBbJSdmZitBakdzSV8+Q1V0OjU4Xz00SXBvO1IyWjtsY0l1a2Ekcy9zN3FcVUFUaWYvaCkiRzBFJSk9aWNPbiJUTilMUCRSVWo9bi9UaDU4THRRU0Nua0otYXBFPCtsVFlcUj9VaC5baT0uQmcuYlFxaDdwKyU8WSU6QD9kYW1PRCpcMVg6bmhiPl8tRCooWmo1XVErMkdUXkQ5RVdqYVBjPltvZlgyXSQwSEo7bGNKPSlnIkQuXWwjY1cvNDJzZHVGVCokTjhoXi9TXFhjdTd+PmVuZHN0cmVhbQplbmRvYmoKMTYgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMTMzNwo+PgpzdHJlYW0KR2F0bTo9YTAtaiUiQFpLZCprLiJMK1QqOElBOVZibCJSXnA0N2dmODJjN0FtQHFUVlUvY1U6XCxWMCZRZ04sPWY2NUVka1YsKl9aR2dON1lRWEBXNWkqbG5NWW02ajJaUF4/XXFBSUxwaSxYIzNjXFlecVtmKExfXG1DL3BANyciXV9IU1BcXGhIZG1DVW1IKVluKThcVlhCZUtTalIoQkw8aDFESj4kU1s0WzRZUj5KPVQiPWIvPCItT2E8Mks/UGddUTdCNEBHXDNETj0rUjRVLFElZ0hLTjVQNmFzdCJzXFheRildKCclKz1XMzIpYVpYXi8wYGFzO15uaktFNkhiWEktbDhySFMnTSJgYXMzP1M4XSpjMzIkRmRXP1BLM0BnYixXXTwhZUUuKV9gOWJcQWNnLClIUmdfUjBXVFVUW1cuSk8kbmEzNkZSS2ExVVdaU1MxYkM8S0heSic4bGpuU0FRbigrJnNiUjwjVE04XzhPYj1cVE1UPmhgWVgoSFxgQS1MUCk2JG9LW1pUNiE+Xls+ZjAnOjVKJjtgK1wsZSJuTF5DbiMnY28rV0QzZEc7PHFERT0/SFA0N3I6czBDXlFhMSskXkYnJjY4I2NaJVZqRihmVzBAKVh1PyVaWlpiZS5iUVxfSUNXJWNGVWtsPidRPkcxVURENWMtMmlzPWxYKzo1byZnaENpQT1GdFJPXEZpLyRtbWlEI1YxZlBiWCYnTmtsX0dtb2gkP2o3KUNmcHBOSnRxSDBRKGRibmxXRCc6dSo5S0YkaSxNVkZjVi5tNDpFYjlEPG9yPD0xVElqP2s7Y0Q9S11LKjlSMlpBPW1RaTk7OjxOWjgsOGkwLUpGJGhfJiVVYiokVlc8LzZWPGxXWUs5XWZHU1JZZUZhPjRANVM8ajU3L14sYyM/YUhXNFcrX1xpaDIuNlMiO09TWnVLWEptYUQ9MmlUOjojM2szJkMtRyolakxAPCpbbTBpKid0UHI+b09HJV0kcmc5P0opUWI3Ti5ZT2kmVVQjckVCJFw7T2k8UC8nSkdHKUZbOExzLmkvUFU5R1ZKdCdjITNjLyt0SislbSFoXlxRXVRCV2RiYU9IXCIza0RQQmZDVCNvazFBPnQyMj44WjRdMltXKi5YPHRkRjMlZ1ModWhLQG5hQDdEaj1QOGlLR1VsOk1ANnQrMFNGTS90PjI9ZnFIXj4iOUhzbDInJWFQZStQalIyOWdOXVlWVTJrYy5qZHVZOlwwJWxqc1VlS2hHVzwtbGkrQSxaKSVNTzZfRVoiXSlJSDYiRFJaYkRUMGYhTEhFTl0ySjVpWFQvRiZWL3BgOEtjZlZPJWFwU1UnXWxvNTZLXCJeRm9DXy9aV2ZxJSpMJ1QzSVNrN0ktcHE1WT9DQWtnOk4/OURAY1JHVmxyczJjXUQjVUJaak8rJ1xQaVgtRWVSLTMmXVgpRFNnO2hlRC1SVW1aK0ohJD00RUsoR0U5X1llYnQjJ20yJUVTLThPbz5jZTNOMHI/JDFlUzBgUitgNFtgRSVQbGZpV0hobGBQQVxFXDU/RHBXbXItXj9EWEg2Ulo/Rz45MDZhVmFoIi5KNnAzaUMiN0ZbRWBbUDhNOEZVbW00blVNcms4Lj1DMFpBVWQ2VTRAYGAjbHUzRTY+cFpVRUFZSHAoYDJWWCRTazxIKkgiQExhUVItNGtgZC8vNUR0ZU4uOCZrOFsjVytGOXQ4Pj9YWU5gaENHRkdcO1IqLF9ANHAlW1EsdG8xWzs/alVlRF1JcSY0WTklfj5lbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCAxNwowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwNjEgMDAwMDAgbiAKMDAwMDAwMDE0MiAwMDAwMCBuIAowMDAwMDAwMjQ5IDAwMDAwIG4gCjAwMDAwMDAzNjEgMDAwMDAgbiAKMDAwMDAwMDQ3NiAwMDAwMCBuIAowMDAwMDAwNTU5IDAwMDAwIG4gCjAwMDAwMDA2MzYgMDAwMDAgbiAKMDAwMDAwMDgzMSAwMDAwMCBuIAowMDAwMDAwOTUwIDAwMDAwIG4gCjAwMDAwMDExNDUgMDAwMDAgbiAKMDAwMDAwMTM0MSAwMDAwMCBuIAowMDAwMDAxNDExIDAwMDAwIG4gCjAwMDAwMDE2OTIgMDAwMDAgbiAKMDAwMDAwMTc2NSAwMDAwMCBuIAowMDAwMDA1MDE0IDAwMDAwIG4gCjAwMDAwMDg0MTggMDAwMDAgbiAKdHJhaWxlcgo8PAovSUQgCls8Zjk1OGI3YmY1NzM1Y2YzOWQzNzA2NDgzOGIxNWUzNzc+PGY5NThiN2JmNTczNWNmMzlkMzcwNjQ4MzhiMTVlMzc3Pl0KJSBSZXBvcnRMYWIgZ2VuZXJhdGVkIFBERiBkb2N1bWVudCAtLSBkaWdlc3QgKG9wZW5zb3VyY2UpCgovSW5mbyAxMiAwIFIKL1Jvb3QgMTEgMCBSCi9TaXplIDE3Cj4+CnN0YXJ0eHJlZgo5ODQ3CiUlRU9GCg==" download="Kiele_Schneckloth_Resume.pdf" onclick="earnSeed(event)" style="text-decoration:none;display:inline-flex;align-items:center;">Download Resume</a>
+  </div>
+  <div id="finalGarden">
+    <span class="fgp">🌱</span><span class="fgp">🌿</span><span class="fgp">🌸</span>
+    <span class="fgp">🌺</span><span class="fgp">🌻</span><span class="fgp">🌳</span><span class="fgp">✨</span>
+  </div>
+  <div class="zodrow">
+    <span class="zod" data-tip="Always researching" onclick="earnSeed(event)">🔮</span>
+    <span class="zod" data-tip="Magic: The Gathering" onclick="earnSeed(event)">🃏</span>
+    <span class="zod" data-tip="Herb garden & hydroponics" onclick="earnSeed(event)">🌿</span>
+    <span class="zod" data-tip="D&D: definitely a ranger" onclick="earnSeed(event)">🐉</span>
+    <span class="zod" data-tip="Avatar > everything" onclick="earnSeed(event)">🌊</span>
+    <span class="zod" data-tip="Reading the data & the stars" onclick="earnSeed(event)">🌙</span>
+    <span class="zod" data-tip="Video games always" onclick="earnSeed(event)">🎮</span>
+  </div>
+</div>
+
+<div class="arrows">
+  <button class="arr" id="bPrev" disabled onclick="goTo(cur-1)">←</button>
+  <button class="arr" id="bNext" onclick="goTo(cur+1)">→</button>
+</div>
+
+<script>
+'use strict';
+
+// ── CURSOR + POLLEN ──
+const curEl=document.getElementById('cur');
+let cx=innerWidth/2,cy=innerHeight/2;
+document.addEventListener('mousemove',e=>{
+  cx=e.clientX;cy=e.clientY;
+  curEl.style.left=cx+'px';curEl.style.top=cy+'px';
+  spawnPollen();
+});
+let lastPollen=0;
+const POLCOLS=['#ffd080','#a8d8a0','#c4b0ff','#ffaad4','#7ef5c0'];
+function spawnPollen(){
+  const now=Date.now();
+  if(now-lastPollen<90)return;
+  lastPollen=now;
+  const p=document.createElement('div');
+  p.className='pollen';
+  const sz=2+Math.random()*5;
+  const col=POLCOLS[Math.floor(Math.random()*POLCOLS.length)];
+  const angle=Math.random()*360;
+  const dist=18+Math.random()*45;
+  const dur=(0.45+Math.random()*0.5)+'s';
+  p.style.cssText=`width:${sz}px;height:${sz}px;background:${col};left:${cx}px;top:${cy}px;`+
+    `--tx:${Math.cos(angle*Math.PI/180)*dist}px;--ty:${Math.sin(angle*Math.PI/180)*dist}px;--d:${dur};`;
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(),700);
+}
+
+// ── BEE follows cursor lazily ──
+const beeEl=document.getElementById('bee');
+let bx=100,by=100,btx=200,bty=200;
+document.addEventListener('mousemove',e=>{btx=e.clientX+28;bty=e.clientY-22;});
+setInterval(()=>{
+  bx+=(btx-bx)*.04;by+=(bty-by)*.04;
+  beeEl.style.left=Math.round(bx)+'px';beeEl.style.top=Math.round(by)+'px';
+},16);
+
+// cursor hover class
+document.querySelectorAll('button,a,.ic,.wtab,.tc,.gbs,.hero-btn,.gpill,.zod,.wsm,.wsc,.cs-toggle,.imgslot,.ic-icon,.ws-icon').forEach(el=>{
+  el.addEventListener('mouseenter',()=>curEl.classList.add('hov'));
+  el.addEventListener('mouseleave',()=>curEl.classList.remove('hov'));
+});
+
+// ── SEED / XP SYSTEM ──
+let seeds=0;
+const cardsRead=new Set(),traitsOpen=new Set(),worksViewed=new Set();
+const LEVELS=[
+  {name:'Seedling',min:0},{name:'Sprout',min:3},{name:'Garden Keeper',min:8},
+  {name:'Bloom Tender',min:15},{name:'Master Cultivator',min:25},{name:'Cosmic Botanist',min:40}
+];
+function getLevel(){let l=LEVELS[0];for(const lv of LEVELS)if(seeds>=lv.min)l=lv;return l;}
+function getNext(){for(let i=0;i<LEVELS.length-1;i++)if(seeds>=LEVELS[i].min&&seeds<LEVELS[i+1].min)return LEVELS[i+1];return null;}
+
+const GARDEN_THRESHOLDS=[3,8,15,25,40,60];
+function addSeeds(n,msg){
+  const prev=getLevel();
+  seeds+=n;
+  document.getElementById('seedbadge').textContent=seeds+' 🌟';
+  document.getElementById('xpfill').style.width=Math.min(100,seeds*2.4)+'%';
+  // update bar plants
+  document.querySelectorAll('#gplants .gpl').forEach((g,i)=>{
+    if(seeds>=GARDEN_THRESHOLDS[i])g.classList.add('grown');
+  });
+  // update about garden meter
+  document.querySelectorAll('#gardenMeterPlants .gmp').forEach((g,i)=>{
+    if(seeds>=[3,8,15,25,40][i])g.classList.add('grown');
+  });
+  const meterLabels=['🌱 Keep exploring...','🌿 Looking good!','🌸 Blooming nicely!','🌺 Garden thriving!','🌳 Full bloom!'];
+  const mLabel=document.getElementById('gardenMeterLabel');
+  if(mLabel){
+    const grown=document.querySelectorAll('#gardenMeterPlants .gmp.grown').length;
+    mLabel.textContent=meterLabels[Math.min(grown,meterLabels.length-1)];
+  }
+  const lvl=getLevel();
+  if(prev.name!==lvl.name){
+    showToast(`🌸 Level up! You're now a ${lvl.name}`);
+    burstPetals(cx,cy,10);
+    // bee rushes to garden bar
+    const bar=document.getElementById('gplants');
+    if(bar){const r=bar.getBoundingClientRect();btx=r.left+r.width/2;bty=r.top+r.height/2;}
+  } else if(msg){
+    showToast(msg);
+  }
+  checkFinal();
+}
+
+function earnSeed(e){
+  const el=e&&(e.currentTarget||e.target||e.srcElement);
+  if(el&&el._seeded)return;
+  if(el)el._seeded=true;
+  const x=e?(typeof e.clientX==='number'?e.clientX:cx):cx;
+  const y=e?(typeof e.clientY==='number'?e.clientY:cy):cy;
+  addSeeds(1,'🌱 +1 seed');
+  burstPetals(x,y,3);
+}
+
+function checkFinal(){
+  if(worksViewed.size>=5&&cardsRead.size>=4&&traitsOpen.size>=5&&seeds>=20){
+    document.getElementById('finalGarden').classList.add('show');
+    showToast('🌟 Full bloom! You found everything.');
+  }
+}
+
+// petal burst
+const PETALS=['🌸','🌺','✨','🌿','💫','🍃','🌼','🌻'];
+function burstPetals(x,y,n=5){
+  for(let i=0;i<n;i++){
+    const p=document.createElement('div');p.className='petal';
+    const a=Math.random()*360,d=35+Math.random()*75;
+    p.style.setProperty('--tx',Math.cos(a*Math.PI/180)*d+'px');
+    p.style.setProperty('--ty',Math.sin(a*Math.PI/180)*d+'px');
+    p.style.setProperty('--tr',(Math.random()*360)+'deg');
+    p.style.left=x+'px';p.style.top=y+'px';
+    p.style.animationDelay=(i*.06)+'s';
+    p.textContent=PETALS[Math.floor(Math.random()*PETALS.length)];
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),1100);
+  }
+}
+
+// toast
+let toastTimer;
+const toastEl=document.getElementById('toast');
+function showToast(msg){
+  toastEl.textContent=msg;toastEl.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),2600);
+}
+
+// pet plant
+function petPlant(e,el){
+  e.stopPropagation();
+  el.style.transform='scale(2.2) rotate(22deg)';
+  setTimeout(()=>el.style.transform='',500);
+  burstPetals(e.clientX,e.clientY,6);
+  addSeeds(1,'🍃 +1 seed — petted!');
+}
+
+// ── STAR CANVAS ──
+(function initStars(){
+  const c=document.getElementById('starC');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  let W,H,stars=[];
+  const resize=()=>{W=c.width=innerWidth;H=c.height=innerHeight;};
+  resize();window.addEventListener('resize',resize);
+  const COLS=['rgba(196,176,255,','rgba(114,200,255,','rgba(255,208,128,','rgba(242,239,233,','rgba(168,216,160,'];
+  for(let i=0;i<160;i++){
+    const col=COLS[i%COLS.length];
+    stars.push({x:Math.random(),y:Math.random(),r:.2+Math.random()*1.3,base:.05+Math.random()*.42,spd:.004+Math.random()*.02,ph:Math.random()*Math.PI*2,col});
+  }
+  let t=0;
+  (function draw(){
+    t+=1;ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{
+      const a=s.base+Math.sin(t*s.spd+s.ph)*s.base*.7;
+      ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);
+      ctx.fillStyle=s.col+a+')';ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  })();
+})();
+
+// ── BOTANICAL HERO CANVAS ──
+(function initBotanical(){
+  const c=document.getElementById('botC');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  let W,H;
+  const resize=()=>{W=c.width=innerWidth;H=c.height=innerHeight;};
+  resize();window.addEventListener('resize',resize);
+
+  const COLS=[{r:110,g:200,b:130},{r:88,g:172,b:108},{r:128,g:208,b:142},{r:196,g:176,b:255},{r:255,g:208,b:128},{r:255,g:170,b:212}];
+  const plants=[];
+  let mx=W/2,my=H/2;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+
+  function mkPlant(x,y,ang,col){
+    plants.push({segs:[{x,y,ang,len:0,max:55+Math.random()*85,growing:true,children:[]}],col});
+  }
+  // seed border plants
+  [[0,H,-Math.PI/3],[W,H,-Math.PI*2/3],[W*.22,H,-Math.PI/2],[W*.78,H,-Math.PI/2],
+   [W*.5,H,-Math.PI/2],[0,H*.65,-Math.PI/4],[W,H*.65,-Math.PI*3/4],
+   [0,0,Math.PI/4],[W,0,Math.PI*3/4],[W*.1,H,-Math.PI/2.2],[W*.9,H,-Math.PI/1.8]
+  ].forEach(([x,y,a])=>mkPlant(x,y,a,COLS[Math.floor(Math.random()*3)]));
+
+  c.addEventListener('click',e=>{
+    mkPlant(e.clientX,e.clientY,-Math.PI/2,COLS[Math.floor(Math.random()*COLS.length)]);
+    burstPetals(e.clientX,e.clientY,4);
+    addSeeds(2,'🌱 +2 seeds — planted!');
+  });
+
+  function grow(seg,d){
+    if(!seg.growing)return;
+    seg.len=Math.min(seg.len+.85,seg.max);
+    if(seg.len>=seg.max){
+      seg.growing=false;
+      if(d<5&&Math.random()<.7){
+        const sp=.38+Math.random()*.28;
+        const a=seg.ang;
+        if(Math.random()<.62)seg.children.push({x:seg.x+Math.cos(a)*seg.len,y:seg.y+Math.sin(a)*seg.len,ang:a-sp,len:0,max:seg.max*.62,growing:true,children:[]});
+        if(Math.random()<.62)seg.children.push({x:seg.x+Math.cos(a)*seg.len,y:seg.y+Math.sin(a)*seg.len,ang:a+sp,len:0,max:seg.max*.62,growing:true,children:[]});
+        if(Math.random()<.28)seg.children.push({x:seg.x+Math.cos(a)*seg.len,y:seg.y+Math.sin(a)*seg.len,ang:a,len:0,max:seg.max*.52,growing:true,children:[]});
+      }
+    }
+  }
+
+  function drawSeg(seg,col,d){
+    const ex=seg.x+Math.cos(seg.ang)*seg.len;
+    const ey=seg.y+Math.sin(seg.ang)*seg.len;
+    // subtle mouse attraction
+    const dx=mx-ex,dy=my-ey,dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<150&&seg.len>5)seg.ang+=(Math.random()-.5)*.012*(1-dist/150);
+    const w=Math.max(.35,1.7-d*.26);
+    ctx.beginPath();ctx.moveTo(seg.x,seg.y);ctx.lineTo(ex,ey);
+    ctx.strokeStyle=`rgba(${col.r},${col.g},${col.b},${.52-d*.07})`;
+    ctx.lineWidth=w;ctx.lineCap='round';ctx.stroke();
+    // leaf at tip
+    if(seg.len>seg.max*.68&&Math.random()<.003){
+      ctx.save();ctx.translate(ex,ey);ctx.rotate(seg.ang+.5);
+      const sz=5+Math.random()*8;
+      ctx.beginPath();ctx.ellipse(0,-sz*.5,sz*.3,sz*.52,0,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${col.r},${col.g},${col.b},${.38-d*.05})`;ctx.fill();ctx.restore();
+    }
+    grow(seg,d);
+    seg.children.forEach(ch=>{drawSeg(ch,col,d+1);grow(ch,d+1);});
+  }
+
+  (function draw(){
+    ctx.clearRect(0,0,W,H);
+    plants.forEach(p=>drawSeg(p.segs[0],p.col,0));
+    requestAnimationFrame(draw);
+  })();
+})();
+
+// ── SIDEBAR VINE ──
+(function initSideVine(){
+  const c=document.getElementById('svineC');
+  if(!c)return;
+  const ctx=c.getContext('2d');let t=0;
+  const resize=()=>{c.width=c.offsetWidth||220;c.height=c.offsetHeight||600;};
+  resize();window.addEventListener('resize',resize);
+  (function draw(){
+    ctx.clearRect(0,0,c.width,c.height);t+=.006;
+    for(let i=0;i<3;i++){
+      ctx.beginPath();
+      ctx.moveTo(c.width*.15,c.height);
+      ctx.quadraticCurveTo(c.width*.15+Math.cos(t+i)*18,c.height*.6,c.width*.3+Math.sin(t*.7+i)*14,c.height*.3);
+      ctx.strokeStyle=`rgba(110,190,120,${.07+i*.025})`;ctx.lineWidth=1.2;ctx.stroke();
+    }
+    requestAnimationFrame(draw);
+  })();
+})();
+
+// ── CONTACT BOTANICAL ──
+(function initContactBotanical(){
+  const c=document.getElementById('p4botC');
+  if(!c)return;
+  const ctx=c.getContext('2d');let t=0;
+  const H=220;
+  const resize=()=>{c.width=innerWidth;c.height=H;};
+  resize();window.addEventListener('resize',resize);
+  const stems=[];
+  for(let i=0;i<18;i++)stems.push({
+    x:Math.random(),h:.28+Math.random()*.72,sway:Math.random()*Math.PI*2,
+    spd:.01+Math.random()*.02,
+    col:{r:90+Math.floor(Math.random()*60),g:180+Math.floor(Math.random()*44),b:94+Math.floor(Math.random()*56)}
+  });
+  (function draw(){
+    ctx.clearRect(0,0,c.width,H);t+=.008;
+    stems.forEach(s=>{
+      const sw=Math.sin(t*s.spd*60+s.sway)*10;
+      const bx=s.x*c.width,by=H,tx=bx+sw,ty=H*(1-s.h);
+      ctx.beginPath();ctx.moveTo(bx,by);ctx.quadraticCurveTo(bx+sw*.5,by-H*s.h*.5,tx,ty);
+      ctx.strokeStyle=`rgba(${s.col.r},${s.col.g},${s.col.b},.48)`;ctx.lineWidth=1.5;ctx.lineCap='round';ctx.stroke();
+      ctx.save();ctx.translate(tx,ty);ctx.rotate(sw*.04);
+      ctx.beginPath();ctx.ellipse(0,-8,5,10,0,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${s.col.r},${s.col.g},${s.col.b},.35)`;ctx.fill();ctx.restore();
+    });
+    requestAnimationFrame(draw);
+  })();
+})();
+
+// ── PANEL NAVIGATION ──
+let cur=0;
+const panels=document.querySelectorAll('.panel');
+const steps=document.querySelectorAll('.gbs');
+const LABELS=['Intro','Impact','Work','About','Contact'];
+
+function goTo(n){
+  if(n<0||n>4||n===cur)return;
+  panels[cur].classList.remove('active');
+  steps[cur].classList.remove('active');
+  if(n>cur){for(let i=0;i<n;i++)steps[i].classList.add('done');}
+  else{for(let i=n;i<=cur;i++)steps[i].classList.remove('done');}
+  cur=n;
+  panels[cur].classList.add('active');
+  steps[cur].classList.remove('done');
+  steps[cur].classList.add('active');
+  document.getElementById('navLbl').textContent=LABELS[cur];
+  document.getElementById('bPrev').disabled=cur===0;
+  document.getElementById('bNext').disabled=cur===4;
+  // reward first visit
+  if(!panels[cur]._visited){
+    panels[cur]._visited=true;
+    setTimeout(()=>addSeeds(2,`✦ +2 seeds — exploring ${LABELS[cur]}`),300);
+  }
+}
+
+// hero button wired separately to avoid event issues
+document.getElementById('heroBtn').addEventListener('click',()=>goTo(1));
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')goTo(cur+1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')goTo(cur-1);
+});
+
+// ── WORK TABS ──
+function showW(i,tab){
+  document.querySelectorAll('.wtab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.wslide').forEach(s=>s.classList.remove('on'));
+  tab.classList.add('on');
+  document.getElementById('ws'+i).classList.add('on');
+  if(!worksViewed.has(i)){
+    worksViewed.add(i);
+    setTimeout(()=>{addSeeds(2,`🌿 +2 seeds — project ${i+1} explored`);burstPetals(cx,cy,4);},200);
+  }
+  checkFinal();
+}
+
+// ── IMPACT CARD READ ──
+function readCard(el,idx){
+  if(!cardsRead.has(idx)){
+    cardsRead.add(idx);
+    el.classList.add('read');
+    addSeeds(3,'📖 +3 seeds for reading');
+    burstPetals(cx,cy,7);
+  }
+}
+
+// ── TRAITS ──
+function openT(el,idx){
+  const was=el.classList.contains('open');
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('open'));
+  if(!was){
+    el.classList.add('open');
+    if(!traitsOpen.has(idx)){
+      traitsOpen.add(idx);
+      addSeeds(2,'🌸 +2 seeds — curiosity!');
+      burstPetals(cx,cy,3);
+    }
+  }
+  checkFinal();
+}
+
+// ── CASE STUDY DRAWER ──
+function toggleDrawer(btn){
+  const drawer=btn.nextElementSibling;
+  const opening=!drawer.classList.contains('open');
+  drawer.classList.toggle('open',opening);
+  btn.classList.toggle('open',opening);
+  if(opening&&!btn._rewarded){
+    btn._rewarded=true;
+    setTimeout(()=>{addSeeds(3,'📂 +3 seeds — diving deeper');burstPetals(cx,cy,5);},200);
+  }
+}
+</script>
+</body>
+</html>
